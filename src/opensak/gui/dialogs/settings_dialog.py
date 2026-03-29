@@ -7,15 +7,17 @@ from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QFormLayout,
     QLabel, QLineEdit, QCheckBox, QPushButton,
-    QDialogButtonBox, QGroupBox, QDoubleSpinBox, QComboBox
+    QDialogButtonBox, QGroupBox, QDoubleSpinBox, QComboBox,
+    QMessageBox
 )
 from opensak.gui.settings import get_settings
+from opensak.lang import tr, AVAILABLE_LANGUAGES, current_language
 
 
 class SettingsDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("Indstillinger")
+        self.setWindowTitle(tr("settings_dialog_title"))
         self.setMinimumWidth(400)
         self._setup_ui()
         self._load()
@@ -23,50 +25,70 @@ class SettingsDialog(QDialog):
     def _setup_ui(self) -> None:
         layout = QVBoxLayout(self)
 
-        # ── Home location ─────────────────────────────────────────────────────
-        loc_group = QGroupBox("Hjemkoordinat")
+        # ── Hjemkoordinat ─────────────────────────────────────────────────────
+        loc_group = QGroupBox(tr("settings_group_location"))
         loc_form = QFormLayout(loc_group)
 
         self._lat = QDoubleSpinBox()
         self._lat.setRange(-90.0, 90.0)
         self._lat.setDecimals(5)
         self._lat.setSingleStep(0.001)
-        loc_form.addRow("Breddegrad:", self._lat)
+        loc_form.addRow(tr("settings_lat_label"), self._lat)
 
         self._lon = QDoubleSpinBox()
         self._lon.setRange(-180.0, 180.0)
         self._lon.setDecimals(5)
         self._lon.setSingleStep(0.001)
-        loc_form.addRow("Længdegrad:", self._lon)
+        loc_form.addRow(tr("settings_lon_label"), self._lon)
 
         layout.addWidget(loc_group)
 
-        # ── Display ───────────────────────────────────────────────────────────
-        disp_group = QGroupBox("Visning")
+        # ── Visning ───────────────────────────────────────────────────────────
+        disp_group = QGroupBox(tr("settings_group_display"))
         disp_layout = QVBoxLayout(disp_group)
 
-        self._miles_cb = QCheckBox("Vis afstande i miles (i stedet for km)")
+        self._miles_cb = QCheckBox(tr("settings_use_miles"))
         disp_layout.addWidget(self._miles_cb)
 
-        self._archived_cb = QCheckBox("Vis arkiverede caches")
+        self._archived_cb = QCheckBox(tr("settings_show_archived"))
         disp_layout.addWidget(self._archived_cb)
 
-        self._found_cb = QCheckBox("Vis fundne caches")
+        self._found_cb = QCheckBox(tr("settings_show_found"))
         disp_layout.addWidget(self._found_cb)
 
         # Kortapp
         map_row = QHBoxLayout()
-        map_row.addWidget(QLabel("Kortapp:"))
+        map_row.addWidget(QLabel(tr("settings_map_label")))
         self._map_provider = QComboBox()
-        self._map_provider.addItem("Google Maps", "google")
-        self._map_provider.addItem("OpenStreetMap", "osm")
+        self._map_provider.addItem(tr("settings_map_google"), "google")
+        self._map_provider.addItem(tr("settings_map_osm"), "osm")
         map_row.addWidget(self._map_provider)
         map_row.addStretch()
         disp_layout.addLayout(map_row)
 
         layout.addWidget(disp_group)
 
-        # ── Buttons ───────────────────────────────────────────────────────────
+        # ── Sprog ─────────────────────────────────────────────────────────────
+        lang_group = QGroupBox(tr("settings_group_language"))
+        lang_layout = QVBoxLayout(lang_group)
+
+        lang_row = QHBoxLayout()
+        lang_row.addWidget(QLabel(tr("settings_language_label")))
+
+        self._lang_combo = QComboBox()
+        for code, name in AVAILABLE_LANGUAGES.items():
+            self._lang_combo.addItem(name, code)
+        lang_row.addWidget(self._lang_combo)
+        lang_row.addStretch()
+        lang_layout.addLayout(lang_row)
+
+        hint = QLabel(tr("settings_language_hint"))
+        hint.setStyleSheet("color: gray; font-size: 10px;")
+        lang_layout.addWidget(hint)
+
+        layout.addWidget(lang_group)
+
+        # ── Knapper ───────────────────────────────────────────────────────────
         buttons = QDialogButtonBox(
             QDialogButtonBox.StandardButton.Ok |
             QDialogButtonBox.StandardButton.Cancel
@@ -85,13 +107,29 @@ class SettingsDialog(QDialog):
         idx = self._map_provider.findData(s.map_provider)
         self._map_provider.setCurrentIndex(idx if idx >= 0 else 0)
 
+        # Sæt sprog-combo til det aktuelle sprog
+        lang_idx = self._lang_combo.findData(current_language())
+        self._lang_combo.setCurrentIndex(lang_idx if lang_idx >= 0 else 0)
+
     def _save(self) -> None:
         s = get_settings()
-        s.home_lat = self._lat.value()
-        s.home_lon = self._lon.value()
-        s.use_miles = self._miles_cb.isChecked()
+        s.home_lat      = self._lat.value()
+        s.home_lon      = self._lon.value()
+        s.use_miles     = self._miles_cb.isChecked()
         s.show_archived = self._archived_cb.isChecked()
-        s.show_found = self._found_cb.isChecked()
-        s.map_provider = self._map_provider.currentData()
+        s.show_found    = self._found_cb.isChecked()
+        s.map_provider  = self._map_provider.currentData()
         s.sync()
+
+        # Gem sprog hvis det er ændret
+        new_lang = self._lang_combo.currentData()
+        if new_lang != current_language():
+            from opensak.config import set_language
+            set_language(new_lang)
+            QMessageBox.information(
+                self,
+                tr("restart_required"),
+                tr("restart_message"),
+            )
+
         self.accept()

@@ -59,6 +59,11 @@ def main() -> None:
     app.setOrganizationName("OpenSAK Project")
     app.setAttribute(Qt.ApplicationAttribute.AA_UseHighDpiPixmaps, True)
 
+    # Indlæs sprog FØR noget UI oprettes
+    from opensak.config import get_language
+    from opensak.lang import load_language
+    load_language(get_language())
+
     # Migrer gammel database hvis nødvendigt
     _migrate_legacy_db()
 

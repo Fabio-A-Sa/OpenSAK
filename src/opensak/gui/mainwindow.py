@@ -22,6 +22,7 @@ from opensak.filters.engine import (
 from opensak.gui.cache_table import CacheTableView
 from opensak.gui.cache_detail import CacheDetailPanel
 from opensak.gui.settings import get_settings
+from opensak.lang import tr
 
 
 class MainWindow(QMainWindow):
@@ -65,7 +66,7 @@ class MainWindow(QMainWindow):
         self._detail_panel = CacheDetailPanel()
         right_splitter.addWidget(self._detail_panel)
 
-        # Map widget (Stage 5)
+        # Map widget
         from opensak.gui.map_widget import MapWidget
         self._map_widget = MapWidget()
         self._map_widget.cache_selected.connect(self._on_map_cache_selected)
@@ -88,23 +89,23 @@ class MainWindow(QMainWindow):
         layout.setSpacing(8)
 
         # Search box
-        layout.addWidget(QLabel("Søg:"))
+        layout.addWidget(QLabel(tr("search_label")))
         self._search_box = QLineEdit()
-        self._search_box.setPlaceholderText("Navn eller GC kode…")
+        self._search_box.setPlaceholderText(tr("search_placeholder"))
         self._search_box.setMaximumWidth(200)
         self._search_box.textChanged.connect(self._on_search_changed)
         layout.addWidget(self._search_box)
 
         # Quick filters
-        layout.addWidget(QLabel("Vis:"))
+        layout.addWidget(QLabel(tr("show_label")))
         self._quick_filter = QComboBox()
         self._quick_filter.addItems([
-            "Alle caches",
-            "Ikke fundne",
-            "Fundne",
-            "Tilgængelige (ikke fundne)",
-            "Traditional — let (D≤2, T≤2)",
-            "Arkiverede",
+            tr("quick_all"),
+            tr("quick_not_found"),
+            tr("quick_found"),
+            tr("quick_available"),
+            tr("quick_traditional_easy"),
+            tr("quick_archived"),
         ])
         self._quick_filter.currentIndexChanged.connect(self._on_quick_filter_changed)
         layout.addWidget(self._quick_filter)
@@ -117,7 +118,7 @@ class MainWindow(QMainWindow):
         layout.addStretch()
 
         # Cache count label
-        self._count_lbl = QLabel("0 caches")
+        self._count_lbl = QLabel(tr("count_caches", count=0))
         self._count_lbl.setStyleSheet("color: gray;")
         layout.addWidget(self._count_lbl)
 
@@ -127,99 +128,98 @@ class MainWindow(QMainWindow):
         menubar = self.menuBar()
 
         # ── Fil ───────────────────────────────────────────────────────────────
-        file_menu = menubar.addMenu("&Fil")
+        file_menu = menubar.addMenu(tr("menu_file"))
 
-        # Database
-        self._act_db_manager = QAction("&Administrer databaser…", self)
+        self._act_db_manager = QAction(tr("action_db_manager"), self)
         self._act_db_manager.setShortcut(QKeySequence("Ctrl+D"))
         self._act_db_manager.triggered.connect(self._open_db_manager)
         file_menu.addAction(self._act_db_manager)
 
         file_menu.addSeparator()
 
-        self._act_import = QAction("&Importer GPX / PQ zip…", self)
+        self._act_import = QAction(tr("action_import"), self)
         self._act_import.setShortcut(QKeySequence("Ctrl+I"))
         self._act_import.triggered.connect(self._open_import_dialog)
         file_menu.addAction(self._act_import)
 
         file_menu.addSeparator()
 
-        act_quit = QAction("&Afslut", self)
+        act_quit = QAction(tr("action_quit"), self)
         act_quit.setShortcut(QKeySequence("Ctrl+Q"))
         act_quit.triggered.connect(self.close)
         file_menu.addAction(act_quit)
 
         # ── Waypoint ──────────────────────────────────────────────────────────
-        wp_menu = menubar.addMenu("&Waypoint")
+        wp_menu = menubar.addMenu(tr("menu_waypoint"))
 
-        act_wp_add = QAction("&Tilføj cache…", self)
+        act_wp_add = QAction(tr("action_wp_add"), self)
         act_wp_add.setShortcut(QKeySequence("Ctrl+N"))
         act_wp_add.triggered.connect(self._add_waypoint)
         wp_menu.addAction(act_wp_add)
 
-        self._act_wp_edit = QAction("&Rediger cache…", self)
+        self._act_wp_edit = QAction(tr("action_wp_edit"), self)
         self._act_wp_edit.setShortcut(QKeySequence("Ctrl+E"))
         self._act_wp_edit.setEnabled(False)
         self._act_wp_edit.triggered.connect(self._edit_waypoint)
         wp_menu.addAction(self._act_wp_edit)
 
-        self._act_wp_delete = QAction("&Slet cache…", self)
+        self._act_wp_delete = QAction(tr("action_wp_delete"), self)
         self._act_wp_delete.setShortcut(QKeySequence("Delete"))
         self._act_wp_delete.setEnabled(False)
         self._act_wp_delete.triggered.connect(self._delete_waypoint)
         wp_menu.addAction(self._act_wp_delete)
 
         # ── Vis ───────────────────────────────────────────────────────────────
-        view_menu = menubar.addMenu("&Vis")
+        view_menu = menubar.addMenu(tr("menu_view"))
 
-        act_refresh = QAction("&Opdater liste", self)
+        act_refresh = QAction(tr("action_refresh"), self)
         act_refresh.setShortcut(QKeySequence("F5"))
         act_refresh.triggered.connect(self._refresh_cache_list)
         view_menu.addAction(act_refresh)
 
         view_menu.addSeparator()
 
-        act_filter = QAction("🔍  &Sæt filter…", self)
+        act_filter = QAction(tr("action_filter"), self)
         act_filter.setShortcut("Ctrl+F")
         act_filter.triggered.connect(self._open_filter_dialog)
         view_menu.addAction(act_filter)
 
-        act_clear = QAction("❌  &Nulstil filter", self)
+        act_clear = QAction(tr("action_clear_filter"), self)
         act_clear.triggered.connect(self._clear_filter)
         view_menu.addAction(act_clear)
 
         view_menu.addSeparator()
 
-        act_columns = QAction("&Vælg kolonner…", self)
+        act_columns = QAction(tr("action_columns"), self)
         act_columns.triggered.connect(self._open_column_chooser)
         view_menu.addAction(act_columns)
 
         # ── Funktioner ────────────────────────────────────────────────────────
-        tools_menu = menubar.addMenu("F&unktioner")
+        tools_menu = menubar.addMenu(tr("menu_tools"))
 
-        act_settings = QAction("&Indstillinger…", self)
+        act_settings = QAction(tr("action_settings"), self)
         act_settings.setShortcut(QKeySequence("Ctrl+,"))
         act_settings.triggered.connect(self._open_settings)
         tools_menu.addAction(act_settings)
 
         tools_menu.addSeparator()
 
-        act_found_update = QAction("⟳  Opdater fund fra reference database…", self)
+        act_found_update = QAction(tr("action_found_update"), self)
         act_found_update.triggered.connect(self._open_found_updater)
         tools_menu.addAction(act_found_update)
 
         # ── GPS ───────────────────────────────────────────────────────────────
         gps_menu = menubar.addMenu("&GPS")
 
-        self._act_gps_export = QAction("📤  &Send til GPS…", self)
+        self._act_gps_export = QAction(tr("action_gps_export"), self)
         self._act_gps_export.setShortcut(QKeySequence("Ctrl+G"))
         self._act_gps_export.triggered.connect(self._open_gps_export)
         gps_menu.addAction(self._act_gps_export)
 
         # ── Hjælp ─────────────────────────────────────────────────────────────
-        help_menu = menubar.addMenu("&Hjælp")
+        help_menu = menubar.addMenu(tr("menu_help"))
 
-        act_about = QAction("&Om OpenSAK…", self)
+        act_about = QAction(tr("action_about"), self)
         act_about.triggered.connect(self._show_about)
         help_menu.addAction(act_about)
 
@@ -234,27 +234,24 @@ class MainWindow(QMainWindow):
 
         tb.addSeparator()
 
-        refresh_act = QAction("⟳  Opdater", self)
+        refresh_act = QAction(f"⟳  {tr('toolbar_refresh')}", self)
         refresh_act.triggered.connect(self._refresh_cache_list)
         tb.addAction(refresh_act)
 
         tb.addSeparator()
 
-        gps_act = QAction("📤  Send til GPS", self)
-        gps_act.setToolTip("Eksportér caches til GPS enhed (Ctrl+G)")
+        gps_act = QAction(f"📤  {tr('toolbar_gps')}", self)
         gps_act.triggered.connect(self._open_gps_export)
         tb.addAction(gps_act)
 
         tb.addSeparator()
 
-        self._act_filter = QAction("🔍  Filter", self)
-        self._act_filter.setToolTip("Åbn filter dialog (Ctrl+F)")
+        self._act_filter = QAction(f"🔍  {tr('toolbar_filter')}", self)
         self._act_filter.setShortcut("Ctrl+F")
         self._act_filter.triggered.connect(self._open_filter_dialog)
         tb.addAction(self._act_filter)
 
-        self._act_clear_filter = QAction("❌  Slet filter", self)
-        self._act_clear_filter.setToolTip("Nulstil alle filtre")
+        self._act_clear_filter = QAction(f"❌  {tr('toolbar_clear_filter')}", self)
         self._act_clear_filter.setEnabled(False)
         self._act_clear_filter.triggered.connect(self._clear_filter)
         tb.addAction(self._act_clear_filter)
@@ -273,14 +270,14 @@ class MainWindow(QMainWindow):
 
         tb.addSeparator()
 
-        settings_act = QAction("⚙  Indstillinger", self)
+        settings_act = QAction(f"⚙  {tr('action_settings').replace('&', '').replace('…', '')}", self)
         settings_act.triggered.connect(self._open_settings)
         tb.addAction(settings_act)
 
     def _setup_statusbar(self) -> None:
         self._statusbar = QStatusBar()
         self.setStatusBar(self._statusbar)
-        self._statusbar.showMessage("Klar")
+        self._statusbar.showMessage(tr("status_ready"))
 
     # ── State save/restore ────────────────────────────────────────────────────
 
@@ -297,8 +294,10 @@ class MainWindow(QMainWindow):
         """Opdatér vinduestitel med aktiv database navn."""
         from opensak.db.manager import get_db_manager
         manager = get_db_manager()
-        db_name = manager.active.name if manager.active else "Ingen database"
-        self.setWindowTitle(f"OpenSAK — {db_name}")
+        if manager.active:
+            self.setWindowTitle(tr("window_title_with_db", db_name=manager.active.name))
+        else:
+            self.setWindowTitle(tr("window_title"))
 
     def _open_db_manager(self) -> None:
         from opensak.gui.dialogs.database_dialog import DatabaseManagerDialog
@@ -312,7 +311,7 @@ class MainWindow(QMainWindow):
         self._detail_panel.clear()
         self._refresh_cache_list()
         self._statusbar.showMessage(
-            f"Skiftede til database: {db_info.name}", 4000
+            tr("status_db_name", db_name=db_info.name), 4000
         )
 
     def closeEvent(self, event) -> None:
@@ -327,8 +326,6 @@ class MainWindow(QMainWindow):
 
     def _refresh_cache_list(self) -> None:
         """Reload caches from DB applying current filters."""
-        self._statusbar.showMessage("Henter caches…")
-
         fs = self._build_current_filterset()
         with get_session() as session:
             caches = apply_filters(session, fs, SortSpec("name"))
@@ -336,28 +333,30 @@ class MainWindow(QMainWindow):
         self._cache_table.load_caches(caches)
         self._map_widget.load_caches(caches)
         count = self._cache_table.row_count()
-        self._count_lbl.setText(f"{count} cache{'r' if count != 1 else ''}")
-        self._statusbar.showMessage(f"{count} caches indlæst", 3000)
+        if count == 1:
+            self._count_lbl.setText(tr("count_cache_single"))
+        else:
+            self._count_lbl.setText(tr("count_caches", count=count))
 
     def _build_current_filterset(self) -> FilterSet:
         """Build a FilterSet from the current quick filter + search box."""
         fs = FilterSet(mode="AND")
         idx = self._quick_filter.currentIndex()
 
-        if idx == 1:   # Ikke fundne
+        if idx == 1:   # Ikke fundne / Not found
             fs.add(NotFoundFilter())
-        elif idx == 2:  # Fundne
+        elif idx == 2:  # Fundne / Found
             from opensak.filters.engine import FoundFilter
             fs.add(FoundFilter())
-        elif idx == 3:  # Tilgængelige ikke fundne
+        elif idx == 3:  # Tilgængelige ikke fundne / Available not found
             fs.add(AvailableFilter())
             fs.add(NotFoundFilter())
-        elif idx == 4:  # Traditional let
+        elif idx == 4:  # Traditional let / Traditional easy
             fs.add(CacheTypeFilter(["Traditional Cache"]))
             fs.add(DifficultyFilter(max_difficulty=2.0))
             fs.add(TerrainFilter(max_terrain=2.0))
             fs.add(AvailableFilter())
-        elif idx == 5:  # Arkiverede
+        elif idx == 5:  # Arkiverede / Archived
             from opensak.filters.engine import ArchivedFilter
             fs.add(ArchivedFilter())
 
@@ -387,7 +386,6 @@ class MainWindow(QMainWindow):
 
     def _on_map_cache_selected(self, gc_code: str) -> None:
         """Called when a pin is clicked on the map."""
-        # Find cache in table and select it
         from opensak.db.database import get_session
         from opensak.db.models import Cache as CacheModel
         with get_session() as session:
@@ -399,7 +397,6 @@ class MainWindow(QMainWindow):
                 )
 
     def _on_search_changed(self, text: str) -> None:
-        # Small delay so we don't query on every keypress
         QTimer.singleShot(300, self._refresh_cache_list)
 
     def _on_quick_filter_changed(self, index: int) -> None:
@@ -415,8 +412,8 @@ class MainWindow(QMainWindow):
         from opensak.gui.dialogs.settings_dialog import SettingsDialog
         dlg = SettingsDialog(self)
         if dlg.exec():
-            self._map_widget.update_home()   # update home marker
-            self._refresh_cache_list()       # distances may have changed
+            self._map_widget.update_home()
+            self._refresh_cache_list()
 
     def _add_waypoint(self) -> None:
         from opensak.gui.dialogs.waypoint_dialog import WaypointDialog
@@ -426,22 +423,21 @@ class MainWindow(QMainWindow):
         if dlg.exec():
             data = dlg.get_data()
             with get_session() as session:
-                # Tjek om GC koden allerede eksisterer
                 existing = session.query(Cache).filter_by(
                     gc_code=data["gc_code"]
                 ).first()
                 if existing:
-                    from PySide6.QtWidgets import QMessageBox
                     QMessageBox.warning(
-                        self, "Allerede eksisterer",
-                        f"{data['gc_code']} findes allerede i databasen."
+                        self,
+                        tr("wp_already_exists_title"),
+                        tr("wp_already_exists_msg", gc_code=data["gc_code"])
                     )
                     return
                 cache = Cache(**data)
                 session.add(cache)
             self._refresh_cache_list()
             self._statusbar.showMessage(
-                f"Cache {data['gc_code']} tilføjet", 3000
+                tr("status_cache_added", gc_code=data["gc_code"]), 3000
             )
 
     def _edit_waypoint(self) -> None:
@@ -464,19 +460,19 @@ class MainWindow(QMainWindow):
                             setattr(c, field, value)
             self._refresh_cache_list()
             self._statusbar.showMessage(
-                f"Cache {data['gc_code']} opdateret", 3000
+                tr("status_cache_updated", gc_code=data["gc_code"]), 3000
             )
 
     def _delete_waypoint(self) -> None:
         cache = self._cache_table.selected_cache()
         if not cache:
             return
-        from PySide6.QtWidgets import QMessageBox
         from opensak.db.database import get_session
         from opensak.db.models import Cache
-        msg = f"Er du sikker på at du vil slette:\n{cache.gc_code} — {cache.name}?"
         reply = QMessageBox.question(
-            self, "Slet cache", msg,
+            self,
+            tr("wp_delete_title"),
+            tr("wp_delete_msg", gc_code=cache.gc_code, name=cache.name),
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
             QMessageBox.StandardButton.No
         )
@@ -492,7 +488,7 @@ class MainWindow(QMainWindow):
             self._act_wp_delete.setEnabled(False)
             self._refresh_cache_list()
             self._statusbar.showMessage(
-                f"Cache {cache.gc_code} slettet", 3000
+                tr("status_cache_deleted", gc_code=cache.gc_code), 3000
             )
 
     def _open_filter_dialog(self) -> None:
@@ -504,7 +500,7 @@ class MainWindow(QMainWindow):
     def _on_filter_applied(self, filterset, sort) -> None:
         self._current_filterset = filterset
         self._act_clear_filter.setEnabled(True)
-        self._filter_lbl.setText("🔍 Filter aktivt")
+        self._filter_lbl.setText(tr("filter_active_label"))
         self._quick_filter.setCurrentIndex(0)
         with get_session() as session:
             from opensak.filters.engine import apply_filters
@@ -512,15 +508,18 @@ class MainWindow(QMainWindow):
         self._cache_table.load_caches(caches)
         self._map_widget.load_caches(caches)
         count = self._cache_table.row_count()
-        self._count_lbl.setText(f"{count} cache{'r' if count != 1 else ''}")
-        self._statusbar.showMessage(f"Filter: {count} caches", 3000)
+        if count == 1:
+            self._count_lbl.setText(tr("count_cache_single"))
+        else:
+            self._count_lbl.setText(tr("count_caches", count=count))
+        self._statusbar.showMessage(tr("status_filter_result", count=count), 3000)
 
     def _clear_filter(self) -> None:
         self._current_filterset = FilterSet()
         self._act_clear_filter.setEnabled(False)
         self._filter_lbl.setText("")
         self._refresh_cache_list()
-        self._statusbar.showMessage("Filter nulstillet", 3000)
+        self._statusbar.showMessage(tr("status_filter_reset"), 3000)
 
     def _open_column_chooser(self) -> None:
         from opensak.gui.dialogs.column_dialog import ColumnChooserDialog
@@ -530,7 +529,6 @@ class MainWindow(QMainWindow):
 
     def _open_gps_export(self) -> None:
         from opensak.gui.dialogs.gps_dialog import GpsExportDialog
-        # Brug de aktuelt viste caches
         caches = [
             self._cache_table._model.cache_at(i)
             for i in range(self._cache_table.row_count())
@@ -548,11 +546,6 @@ class MainWindow(QMainWindow):
     def _show_about(self) -> None:
         QMessageBox.about(
             self,
-            "Om OpenSAK",
-            "<h3>OpenSAK 0.1.0</h3>"
-            "<p>Et open source geocaching-styringsværktøj "
-            "til Linux og Windows.</p>"
-            "<p>Bygget med Python og PySide6.</p>"
-            "<p><a href='https://github.com/AgreeDK/opensak'>"
-            "github.com/AgreeDK/opensak</a></p>"
+            tr("about_title"),
+            tr("about_text"),
         )

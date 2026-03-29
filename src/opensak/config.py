@@ -50,6 +50,50 @@ def get_log_path() -> Path:
     return get_app_data_dir() / "opensak.log"
 
 
+# ── Sprog / Language ──────────────────────────────────────────────────────────
+
+_PREFS_FILE = None
+
+
+def _get_prefs_file() -> Path:
+    """Returner stien til præference-filen (JSON)."""
+    global _PREFS_FILE
+    if _PREFS_FILE is None:
+        _PREFS_FILE = get_app_data_dir() / "preferences.json"
+    return _PREFS_FILE
+
+
+def get_language() -> str:
+    """
+    Returner den gemte sprogkode.
+    Standard: 'da' (dansk).
+    """
+    import json
+    prefs_file = _get_prefs_file()
+    if prefs_file.exists():
+        try:
+            data = json.loads(prefs_file.read_text(encoding="utf-8"))
+            return data.get("language", "da")
+        except (json.JSONDecodeError, OSError):
+            pass
+    return "da"
+
+
+def set_language(lang_code: str) -> None:
+    """Gem sprogkoden til disk."""
+    import json
+    prefs_file = _get_prefs_file()
+    # Læs eksisterende præferencer (for ikke at overskrive andre indstillinger)
+    data: dict = {}
+    if prefs_file.exists():
+        try:
+            data = json.loads(prefs_file.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            pass
+    data["language"] = lang_code
+    prefs_file.write_text(json.dumps(data, indent=2), encoding="utf-8")
+
+
 # ── Convenience summary (useful for debug / startup banner) ──────────────────
 
 def print_config() -> None:
@@ -57,6 +101,7 @@ def print_config() -> None:
     print(f"  Database     : {get_db_path()}")
     print(f"  GPX imports  : {get_gpx_import_dir()}")
     print(f"  Log file     : {get_log_path()}")
+    print(f"  Language     : {get_language()}")
 
 
 if __name__ == "__main__":
