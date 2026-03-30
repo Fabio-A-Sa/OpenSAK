@@ -105,8 +105,7 @@ def main():
         "",
         "# Filtrer harmloese systemadvarsler fra stderr",
         "# (xapp-gtk3-module, gvfs, atk-bridge - ikke relateret til OpenSAK)",
-        'exec "${HERE}/usr/bin/OpenSAK" "$@" 2> >(grep -v -E',
-        '  "xapp-gtk3-module|libgvfscommon|libgvfsdbus|atk-bridge|g_task_set_static_name" >&2)',
+        'exec "${HERE}/usr/bin/OpenSAK" "$@" 2> >(grep -vE "xapp-gtk3-module|libgvfscommon|libgvfsdbus|atk-bridge|g_task_set_static_name" >&2)',
         "",
     ]
     open("AppDir/AppRun", "w").write("\n".join(apprun_lines))
