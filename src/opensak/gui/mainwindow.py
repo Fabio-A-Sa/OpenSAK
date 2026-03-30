@@ -9,7 +9,7 @@ from PySide6.QtWidgets import (
     QMainWindow, QWidget, QSplitter, QVBoxLayout,
     QHBoxLayout, QLabel, QLineEdit, QStatusBar,
     QToolBar, QPushButton, QComboBox, QFrame,
-    QSizePolicy, QMessageBox
+    QSizePolicy, QMessageBox, QWidgetAction
 )
 
 from opensak.db.database import get_session, db_health_check
@@ -48,10 +48,6 @@ class MainWindow(QMainWindow):
         main_layout.setContentsMargins(4, 4, 4, 4)
         main_layout.setSpacing(4)
 
-        # ── Quick filter bar ──────────────────────────────────────────────────
-        filter_bar = self._build_filter_bar()
-        main_layout.addWidget(filter_bar)
-
         # ── Main splitter: list | detail ──────────────────────────────────────
         self._splitter = QSplitter(Qt.Orientation.Horizontal)
 
@@ -78,51 +74,6 @@ class MainWindow(QMainWindow):
         self._splitter.setSizes([580, 520])
 
         main_layout.addWidget(self._splitter)
-
-    def _build_filter_bar(self) -> QWidget:
-        """Quick filter bar above the cache list."""
-        bar = QFrame()
-        bar.setFrameShape(QFrame.Shape.StyledPanel)
-        bar.setMaximumHeight(44)
-        layout = QHBoxLayout(bar)
-        layout.setContentsMargins(8, 4, 8, 4)
-        layout.setSpacing(8)
-
-        # Search box
-        layout.addWidget(QLabel(tr("search_label")))
-        self._search_box = QLineEdit()
-        self._search_box.setPlaceholderText(tr("search_placeholder"))
-        self._search_box.setMaximumWidth(200)
-        self._search_box.textChanged.connect(self._on_search_changed)
-        layout.addWidget(self._search_box)
-
-        # Quick filters
-        layout.addWidget(QLabel(tr("show_label")))
-        self._quick_filter = QComboBox()
-        self._quick_filter.addItems([
-            tr("quick_all"),
-            tr("quick_not_found"),
-            tr("quick_found"),
-            tr("quick_available"),
-            tr("quick_traditional_easy"),
-            tr("quick_archived"),
-        ])
-        self._quick_filter.currentIndexChanged.connect(self._on_quick_filter_changed)
-        layout.addWidget(self._quick_filter)
-
-        # Aktivt filter label
-        self._filter_lbl = QLabel("")
-        self._filter_lbl.setStyleSheet("color: #e65100; font-style: italic;")
-        layout.addWidget(self._filter_lbl)
-
-        layout.addStretch()
-
-        # Cache count label
-        self._count_lbl = QLabel(tr("count_caches", count=0))
-        self._count_lbl.setStyleSheet("color: gray;")
-        layout.addWidget(self._count_lbl)
-
-        return bar
 
     def _setup_menu(self) -> None:
         menubar = self.menuBar()
@@ -223,54 +174,116 @@ class MainWindow(QMainWindow):
         act_about.triggered.connect(self._show_about)
         help_menu.addAction(act_about)
 
+        # ── Søgefelt og Vis-dropdown i menulinjen ─────────────────────────────
+        menubar.addSeparator()
+
+        # Søgefelt
+        self._search_box = QLineEdit()
+        self._search_box.setPlaceholderText(tr("search_placeholder"))
+        self._search_box.setFixedWidth(180)
+        self._search_box.textChanged.connect(self._on_search_changed)
+        search_action = QWidgetAction(self)
+        search_action.setDefaultWidget(self._search_box)
+        menubar.addAction(search_action)
+
+        # Vis-dropdown
+        self._quick_filter = QComboBox()
+        self._quick_filter.setFixedWidth(140)
+        self._quick_filter.addItems([
+            tr("quick_all"),
+            tr("quick_not_found"),
+            tr("quick_found"),
+            tr("quick_available"),
+            tr("quick_traditional_easy"),
+            tr("quick_archived"),
+        ])
+        self._quick_filter.currentIndexChanged.connect(self._on_quick_filter_changed)
+        filter_action = QWidgetAction(self)
+        filter_action.setDefaultWidget(self._quick_filter)
+        menubar.addAction(filter_action)
+
+        # Aktivt filter label
+        self._filter_lbl = QLabel("")
+        self._filter_lbl.setStyleSheet("color: #e65100; font-style: italic; padding: 0 4px;")
+        filter_lbl_action = QWidgetAction(self)
+        filter_lbl_action.setDefaultWidget(self._filter_lbl)
+        menubar.addAction(filter_lbl_action)
+
+        # Cache-tæller (højrejusteret via spacer)
+        spacer = QWidget()
+        spacer.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
+        spacer_action = QWidgetAction(self)
+        spacer_action.setDefaultWidget(spacer)
+        menubar.addAction(spacer_action)
+
+        self._count_lbl = QLabel(tr("count_caches", count=0))
+        self._count_lbl.setStyleSheet("color: gray; padding: 0 8px;")
+        count_action = QWidgetAction(self)
+        count_action.setDefaultWidget(self._count_lbl)
+        menubar.addAction(count_action)
+
     def _setup_toolbar(self) -> None:
         tb = QToolBar("Værktøjslinje")
         tb.setObjectName("main_toolbar")
         tb.setMovable(False)
+        tb.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
         self.addToolBar(tb)
 
+        # Databaser
+        self._act_db_manager.setText(tr("action_db_manager"))
+        self._act_db_manager.setToolTip(tr("action_db_manager") + " (Ctrl+D)")
         tb.addAction(self._act_db_manager)
+
+        # Importer
+        self._act_import.setText(tr("action_import"))
+        self._act_import.setToolTip(tr("action_import") + " (Ctrl+I)")
         tb.addAction(self._act_import)
 
         tb.addSeparator()
 
+        # Opdater
         refresh_act = QAction(f"⟳  {tr('toolbar_refresh')}", self)
+        refresh_act.setToolTip(tr("toolbar_refresh") + " (F5)")
         refresh_act.triggered.connect(self._refresh_cache_list)
         tb.addAction(refresh_act)
 
         tb.addSeparator()
 
+        # GPS
         gps_act = QAction(f"📤  {tr('toolbar_gps')}", self)
+        gps_act.setToolTip(tr("toolbar_gps") + " (Ctrl+G)")
         gps_act.triggered.connect(self._open_gps_export)
         tb.addAction(gps_act)
 
         tb.addSeparator()
 
+        # Filter
         self._act_filter = QAction(f"🔍  {tr('toolbar_filter')}", self)
         self._act_filter.setShortcut("Ctrl+F")
+        self._act_filter.setToolTip(tr("toolbar_filter") + " (Ctrl+F)")
         self._act_filter.triggered.connect(self._open_filter_dialog)
         tb.addAction(self._act_filter)
 
-        self._act_clear_filter = QAction(f"❌  {tr('toolbar_clear_filter')}", self)
+        # Nulstil filter — kun ikon, ingen tekst
+        self._act_clear_filter = QAction("✕", self)
+        self._act_clear_filter.setToolTip(tr("toolbar_clear_filter"))
         self._act_clear_filter.setEnabled(False)
         self._act_clear_filter.triggered.connect(self._clear_filter)
         tb.addAction(self._act_clear_filter)
 
         tb.addSeparator()
 
-        fit_act = QAction("⊞  Vis alle", self)
-        fit_act.setToolTip("Zoom kortet til alle caches")
-        fit_act.triggered.connect(lambda: self._map_widget.fit_all())
-        tb.addAction(fit_act)
-
-        home_act = QAction("⌂  Hjem", self)
-        home_act.setToolTip("Gå til hjemkoordinat")
+        # Hjem
+        home_act = QAction(f"⌂  {tr('toolbar_home')}", self)
+        home_act.setToolTip(tr("toolbar_home_tooltip"))
         home_act.triggered.connect(lambda: self._map_widget.pan_to_home())
         tb.addAction(home_act)
 
         tb.addSeparator()
 
-        settings_act = QAction(f"⚙  {tr('action_settings').replace('&', '').replace('…', '')}", self)
+        # Indstillinger — kun ikon
+        settings_act = QAction("⚙", self)
+        settings_act.setToolTip(tr("action_settings").replace("&", "").replace("…", ""))
         settings_act.triggered.connect(self._open_settings)
         tb.addAction(settings_act)
 
