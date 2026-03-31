@@ -9,31 +9,24 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - HTML/PDF reports and statistics
 - Improved GPS auto-detection on all Linux distros
+- More languages (German, Swedish, …)
 - Windows installer (.exe)
 - Linux AppImage
-- More languages (German, Swedish, …)
 - GitHub Actions CI/CD pipeline
+- Favourite points (requires Geocaching.com API)
 
 ---
-
-## [1.1.0] - 2026-03-30
-
-### Tilføjet
-- GitHub Actions CI/CD pipeline — bygger automatisk til Windows, Linux og macOS
-- Linux AppImage — én fil, ingen installation nødvendig
-- Linux installationsscript (scripts/install-opensak.sh)
-- Windows .exe bygges automatisk ved release
-- macOS .dmg bygges automatisk ved release
 
 ## [0.3.0] — 2026
 
 ### Added
 - **GPS export** — send caches directly to a Garmin GPS device via USB
-- **Delete GPX files on device** before upload (with confirmation dialog)
+- **Delete GPX files on device** before upload (with confirmation dialog and file list)
 - **Save as GPX file** — export to any local path
 - **Language support** — Danish and English built in; easily extensible
 - **Language switcher** in Settings dialog — takes effect on next restart
 - i18n engine (`tr()`) covering all ~220 UI strings across the entire application
+- French language file (`lang/fr.py`) included as a starting point
 
 ---
 
