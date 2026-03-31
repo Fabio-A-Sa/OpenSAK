@@ -9,32 +9,6 @@ A modern, cross-platform geocaching management tool for **Linux**, **Windows** a
 
 ---
 
-## ⬇️ Download & Install
-
-> **Latest release: [GitHub Releases page](https://github.com/AgreeDK/OpenSAK/releases/latest)**
-
-| Platform | File | Instructions |
-|----------|------|--------------|
-| 🪟 Windows | `OpenSAK-Windows.zip` | Unzip → double-click `OpenSAK.exe` |
-| 🐧 Linux | `OpenSAK-Linux-x86_64.AppImage` | See below |
-| 🍎 macOS | `OpenSAK-macOS.dmg` | Open → drag to Applications |
-
-**Linux — two ways to run:**
-
-Option 1 — terminal:
-```bash
-chmod +x OpenSAK-Linux-x86_64.AppImage
-./OpenSAK-Linux-x86_64.AppImage
-```
-
-Option 2 — file manager: right-click the file → Properties → tick **Allow executing as program** → double-click.
-
-**macOS note:** On first launch, right-click → Open. This is required because the app is not signed with an Apple Developer certificate.
-
-**Prefer to install from source?** See the [Installation](#installation) section below.
-
----
-
 > **⚠️ Hobby Project Notice**
 >
 > This project is developed in my spare time as a personal hobby project.
@@ -90,7 +64,8 @@ Option 2 — file manager: right-click the file → Properties → tick **Allow 
 
 - Favourite points cannot be imported from GPX/PQ files (requires Geocaching.com API)
 - No Geocaching.com Live API integration
-- macOS and Windows not yet fully tested — feedback welcome!
+- GPS auto-detection on Linux may not find all Garmin devices automatically
+- macOS builds are not signed with an Apple Developer certificate (right-click → Open on first launch)
 
 ---
 
@@ -132,10 +107,7 @@ The installer will:
 
 ### 🪟 Windows — Standalone installer (recommended)
 
-> **Note:** A pre-built Windows `.exe` is not yet available. It will appear here once
-> the first release is published. Until then, please use the manual install method below.
-
-When available, download the latest **OpenSAK-Windows.zip** from the
+Download the latest **OpenSAK-Windows.zip** from the
 [Releases page](https://github.com/AgreeDK/OpenSAK/releases), unzip it, and
 double-click `OpenSAK.exe` — no Python or Git installation required.
 
@@ -143,12 +115,18 @@ double-click `OpenSAK.exe` — no Python or Git installation required.
 
 ### 🍎 macOS — App bundle (recommended)
 
-> **Note:** A pre-built macOS `.dmg` is not yet available. It will appear here once
-> the first release is published. Until then, please use the manual install method below.
+Download the correct `.dmg` for your Mac from the
+[Releases page](https://github.com/AgreeDK/OpenSAK/releases):
 
-When available, download the latest **OpenSAK-macOS.dmg** from the
-[Releases page](https://github.com/AgreeDK/OpenSAK/releases), open it, and drag
-OpenSAK to your Applications folder.
+| Mac type | File to download |
+|----------|-----------------|
+| Apple Silicon (M1/M2/M3/M4) | `OpenSAK-macOS-arm64.dmg` |
+| Intel | `OpenSAK-macOS-x86_64.dmg` |
+
+> **Not sure which Mac you have?** Click the Apple menu () → "About This Mac".
+> If it says "Apple M1/M2/M3/M4" choose **arm64**. If it says "Intel" choose **x86_64**.
+
+Open the `.dmg` and drag OpenSAK to your Applications folder.
 
 > On first launch, macOS may block the app because it is not signed with an Apple
 > Developer certificate. Right-click → Open to bypass this warning.
@@ -253,7 +231,7 @@ python run.py
 2. Select your language in the **Language** section
 3. Restart OpenSAK — the new language takes effect on next startup
 
-Currently supported: **Danish (da)**, **English (en)**
+Currently supported: **Danish (da)**, **English (en)**, **French (fr)**
 
 ### Adding a New Language
 1. Copy `src/opensak/lang/en.py` to e.g. `src/opensak/lang/de.py`
@@ -324,7 +302,8 @@ opensak/
 │   ├── lang/                       # Language files
 │   │   ├── __init__.py             # i18n engine (tr() function)
 │   │   ├── da.py                   # Danish
-│   │   └── en.py                   # English
+│   │   ├── en.py                   # English
+│   │   └── fr.py                   # French (contributed by @theyoungstone)
 │   ├── db/
 │   │   ├── models.py               # SQLAlchemy ORM models
 │   │   ├── database.py             # Session management
@@ -365,7 +344,9 @@ opensak/
 - [ ] Favourite points (requires Geocaching.com API)
 - [x] Windows installer (.exe) — built automatically via GitHub Actions
 - [x] Linux AppImage — built automatically via GitHub Actions
+- [x] macOS installer (.dmg) — arm64 and x86_64, built automatically via GitHub Actions
 - [x] GitHub Actions CI/CD pipeline
+- [x] French language — contributed by @theyoungstone
 - [ ] More languages (German, Swedish, …)
 
 ---
@@ -388,4 +369,5 @@ MIT License — see [LICENSE](LICENSE) for details.
 - [Leaflet.js](https://leafletjs.com) for the map library
 - [PySide6 / Qt](https://www.qt.io) for the GUI framework
 - [SQLAlchemy](https://www.sqlalchemy.org) for the database layer
+- [@theyoungstone](https://github.com/theyoungstone) (Pierre LEJEUNE) for the French translation
 - Everyone who has tested the app and provided feedback!

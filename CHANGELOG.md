@@ -1,37 +1,58 @@
 # Changelog — OpenSAK
-
 All notable changes to this project are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
 ## [Unreleased] — In development
-
 - HTML/PDF reports and statistics
 - Improved GPS auto-detection on all Linux distros
 - More languages (German, Swedish, …)
-- Windows installer (.exe)
-- Linux AppImage
-- GitHub Actions CI/CD pipeline
 - Favourite points (requires Geocaching.com API)
+- Coordinate format options (e.g. N XX° XX.XXX E XXX° XX.XXX)
 
 ---
 
-## [0.3.0] — 2026
+## [1.2.1] — 2026
+### Fixed
+- macOS release now ships as two separate installers (arm64 and x86_64) instead of a Universal Binary that exceeded GitHub's 2 GB file size limit
 
+---
+
+## [1.2.0] — 2026
 ### Added
+- French language (`lang/fr.py`) — contributed by Pierre LEJEUNE (@theyoungstone)
+- `CONTRIBUTORS.md` — contributor credits
+
+### Fixed
+- Version number in About dialog is now read dynamically from `__init__.py` — no longer hardcoded in translation files
+- Filter dialog now opens tall enough to show all options without manual resizing
+- GC code placeholder in filter dialog is now translated
+- Red "no device" hint text in GPS dialog now wraps correctly instead of being truncated
+- All hardcoded Danish strings in waypoint dialog replaced with `tr()` calls — labels, placeholders and checkboxes are now fully translated
+- Cancel/Save buttons in waypoint dialog now translated correctly in all languages
+
+### Changed
+- Default language on first launch changed from Danish to English
+
+---
+
+## [1.1.0] — 2026
+### Added
+- **GitHub Actions CI/CD pipeline** — automatic builds on version tag push
+- **Windows installer** — `.exe` packaged with PyInstaller, distributed as `.zip`
+- **Linux AppImage** — single-file executable for all major distributions
+- **macOS installer** — `.dmg` for Apple Silicon (arm64) and Intel (x86_64)
 - **GPS export** — send caches directly to a Garmin GPS device via USB
 - **Delete GPX files on device** before upload (with confirmation dialog and file list)
 - **Save as GPX file** — export to any local path
 - **Language support** — Danish and English built in; easily extensible
 - **Language switcher** in Settings dialog — takes effect on next restart
 - i18n engine (`tr()`) covering all ~220 UI strings across the entire application
-- French language file (`lang/fr.py`) included as a starting point
 
 ---
 
 ## [0.2.0] — 2026
-
 ### Added
 - **Advanced filter dialog** with 3 tabs (General, Dates, Attributes)
 - **Filter toolbar** — 🔍 Filter (Ctrl+F) and ❌ Clear filter
@@ -50,7 +71,6 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ---
 
 ## [0.1.0] — 2026
-
 ### Added
 - Import GPX files and Pocket Query ZIP files
 - SQLite database with all Groundspeak fields
