@@ -167,6 +167,19 @@ class MainWindow(QMainWindow):
         self._act_gps_export.triggered.connect(self._open_gps_export)
         gps_menu.addAction(self._act_gps_export)
 
+        # ── Geocaching Værktøjer ──────────────────────────────────────────────
+        gc_tools_menu = menubar.addMenu(tr("menu_gc_tools"))
+
+        act_coord_converter = QAction(tr("action_coord_converter"), self)
+        act_coord_converter.setShortcut(QKeySequence("Ctrl+K"))
+        act_coord_converter.triggered.connect(self._open_coord_converter)
+        gc_tools_menu.addAction(act_coord_converter)
+
+        act_projection = QAction(tr("action_projection"), self)
+        act_projection.setShortcut(QKeySequence("Ctrl+P"))
+        act_projection.triggered.connect(self._open_projection)
+        gc_tools_menu.addAction(act_projection)
+
         # ── Hjælp ─────────────────────────────────────────────────────────────
         help_menu = menubar.addMenu(tr("menu_help"))
 
@@ -554,6 +567,26 @@ class MainWindow(QMainWindow):
         from opensak.gui.dialogs.found_dialog import FoundUpdaterDialog
         dlg = FoundUpdaterDialog(self)
         dlg.update_completed.connect(self._refresh_cache_list)
+        dlg.exec()
+
+    def _open_coord_converter(self) -> None:
+        """Åbn koordinatkonverter — præ-udfyld med valgt cache hvis mulig."""
+        from opensak.gui.dialogs.coord_converter_dialog import CoordConverterDialog
+        cache = self._cache_table.selected_cache()
+        if cache and cache.latitude and cache.longitude:
+            dlg = CoordConverterDialog(cache.latitude, cache.longitude, parent=self)
+        else:
+            dlg = CoordConverterDialog(parent=self)
+        dlg.exec()
+
+    def _open_projection(self) -> None:
+        """Åbn koordinatprojektions-dialog — præ-udfyld med valgt cache hvis mulig."""
+        from opensak.gui.dialogs.projection_dialog import ProjectionDialog
+        cache = self._cache_table.selected_cache()
+        if cache and cache.latitude and cache.longitude:
+            dlg = ProjectionDialog(cache.latitude, cache.longitude, parent=self)
+        else:
+            dlg = ProjectionDialog(parent=self)
         dlg.exec()
 
     def _show_about(self) -> None:

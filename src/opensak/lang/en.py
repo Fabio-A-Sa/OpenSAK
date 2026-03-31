@@ -77,6 +77,11 @@ STRINGS: dict[str, str] = {
     # Help menu
     "action_about":                 "About &OpenSAK…",
 
+    # ── Geocaching Tools menu ─────────────────────────────────────────────────
+    "menu_gc_tools":                "&Tools",
+    "action_coord_converter":       "⇄  &Coordinate Converter…",
+    "action_projection":            "📐  &Coordinate Projection…",
+
     # ── Toolbar ───────────────────────────────────────────────────────────────
     "toolbar_import":               "Import",
     "toolbar_filter":               "Filter",
@@ -426,5 +431,17 @@ STRINGS: dict[str, str] = {
     "coord_conv_copy_btn":          "Copy",
     "coord_conv_open_in":           "Open in:",
     "coord_conv_parse_error":       "Unknown coordinate format — try e.g. N55 47.250 E012 25.000",
+
+    # ── Coordinate projection dialog ──────────────────────────────────────────
+    "proj_title":                   "Coordinate Projection",
+    "proj_start_group":             "Start coordinate",
+    "proj_start_hint":              "Enter start coordinate in DMM, DMS or DD format",
+    "proj_start_placeholder":       "e.g. N55 47.250 E012 25.000",
+    "proj_params_group":            "Bearing and distance",
+    "proj_bearing_label":           "Bearing (azimuth):",
+    "proj_distance_label":          "Distance:",
+    "proj_unit_m":                  "metres",
+    "proj_unit_ft":                 "feet",
+    "proj_result_group":            "Projected coordinate",
 
 }

@@ -77,6 +77,11 @@ STRINGS: dict[str, str] = {
     # Help menu
     "action_about":                 "A propos d'&OpenSAK…",
 
+    # ── Menu Outils de géocaching ─────────────────────────────────────────────
+    "menu_gc_tools":                "&Outils géo",
+    "action_coord_converter":       "⇄  &Convertisseur de coordonnées…",
+    "action_projection":            "📐  &Projection de coordonnées…",
+
     # ── Toolbar ───────────────────────────────────────────────────────────────
     "toolbar_import":               "Importer",
     "toolbar_filter":               "Filtre",
@@ -426,5 +431,17 @@ STRINGS: dict[str, str] = {
     "coord_conv_copy_btn":          "Copier",
     "coord_conv_open_in":           "Ouvrir dans:",
     "coord_conv_parse_error":       "Format de coordonnées inconnu — essayez ex. N55 47.250 E012 25.000",
+
+    # ── Projection de coordonnées ─────────────────────────────────────────────
+    "proj_title":                   "Projection de coordonnées",
+    "proj_start_group":             "Coordonnée de départ",
+    "proj_start_hint":              "Entrez la coordonnée de départ au format DMM, DMS ou DD",
+    "proj_start_placeholder":       "ex. N55 47.250 E012 25.000",
+    "proj_params_group":            "Cap et distance",
+    "proj_bearing_label":           "Cap (azimut):",
+    "proj_distance_label":          "Distance:",
+    "proj_unit_m":                  "mètres",
+    "proj_unit_ft":                 "pieds",
+    "proj_result_group":            "Coordonnée projetée",
 
 }

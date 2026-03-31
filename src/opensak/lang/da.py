@@ -77,6 +77,11 @@ STRINGS: dict[str, str] = {
     # Hjælp-menu
     "action_about":                 "Om &OpenSAK…",
 
+    # ── Geocaching Værktøjer-menu ─────────────────────────────────────────────
+    "menu_gc_tools":                "&Værktøjer",
+    "action_coord_converter":       "⇄  &Koordinatkonverter…",
+    "action_projection":            "📐  &Koordinatprojektion…",
+
     # ── Toolbar ───────────────────────────────────────────────────────────────
     "toolbar_import":               "Importer",
     "toolbar_filter":               "Filter",
@@ -426,5 +431,17 @@ STRINGS: dict[str, str] = {
     "coord_conv_copy_btn":          "Kopiér",
     "coord_conv_open_in":           "Åbn i:",
     "coord_conv_parse_error":       "Ukendt koordinatformat — prøv f.eks. N55 47.250 E012 25.000",
+
+    # ── Koordinatprojektion dialog ────────────────────────────────────────────
+    "proj_title":                   "Koordinatprojektion",
+    "proj_start_group":             "Startkoordinat",
+    "proj_start_hint":              "Skriv startkoordinat i DMM, DMS eller DD format",
+    "proj_start_placeholder":       "f.eks. N55 47.250 E012 25.000",
+    "proj_params_group":            "Retning og afstand",
+    "proj_bearing_label":           "Retning (azimut):",
+    "proj_distance_label":          "Afstand:",
+    "proj_unit_m":                  "meter",
+    "proj_unit_ft":                 "fod",
+    "proj_result_group":            "Beregnet koordinat",
 
 }
