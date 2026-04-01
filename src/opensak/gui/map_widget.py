@@ -92,6 +92,11 @@ MAP_HTML = """<!DOCTYPE html>
     box-shadow: 0 1px 4px rgba(0,0,0,0.5);
   }
   .cache-pin-found { opacity: 0.45; }
+  .cache-pin-corrected {
+    outline: 3px solid #e65100;
+    outline-offset: 2px;
+    border-radius: 50% 50% 50% 0;
+  }
   .home-marker {
     width: 16px; height: 16px;
     background: #e53935;
@@ -146,8 +151,8 @@ new QWebChannel(qt.webChannelTransport, function(channel) {
 });
 
 // ── Hjælpefunktioner ──────────────────────────────────────────────────────────
-function makePinIcon(colour, found) {
-    var cls = 'cache-pin' + (found ? ' cache-pin-found' : '');
+function makePinIcon(colour, found, corrected) {
+    var cls = 'cache-pin' + (found ? ' cache-pin-found' : '') + (corrected ? ' cache-pin-corrected' : '');
     return L.divIcon({
         className: '',
         html: '<div class="' + cls + '" style="background:' + colour + '"></div>',
@@ -176,15 +181,21 @@ function loadCaches(cachesJson) {
     caches.forEach(function(c) {
         if (!c.lat || !c.lon) return;
 
-        var marker = L.marker([c.lat, c.lon], {
-            icon: makePinIcon(c.colour, c.found),
-            title: c.name
+        var lat = c.corrected ? c.clat : c.lat;
+        var lon = c.corrected ? c.clon : c.lon;
+        var marker = L.marker([lat, lon], {
+            icon: makePinIcon(c.colour, c.found, c.corrected),
+            title: c.name + (c.corrected ? ' 📍' : '')
         });
 
+        var coordNote = c.corrected
+            ? '<br><span style="color:#e65100;font-size:11px">📍 Korrigerede koordinater</span>'
+            : '';
         marker.bindPopup(
             '<b>' + c.gc_code + '</b><br>' +
             c.name + '<br>' +
-            '<span style="color:gray">' + c.cache_type + ' D' + c.difficulty + '/T' + c.terrain + '</span>'
+            '<span style="color:gray">' + c.cache_type + ' D' + c.difficulty + '/T' + c.terrain + '</span>' +
+            coordNote
         );
 
         marker.on('click', function() {
@@ -225,7 +236,7 @@ function selectMarker(gcCode) {
         var prev = markers[selectedGcCode];
         var prevData = prev._cacheData;
         if (prevData) {
-            prev.setIcon(makePinIcon(prevData.colour, prevData.found));
+            prev.setIcon(makePinIcon(prevData.colour, prevData.found, prevData.corrected));
         }
     }
     selectedGcCode = gcCode;
@@ -321,10 +332,14 @@ class MapWidget(QWidget):
             self._pending_caches = caches
 
     def _do_load_caches(self, caches: list[Cache]) -> None:
+        from opensak.gps.garmin import _effective_coords
         data = []
         for c in caches:
             if c.latitude is None or c.longitude is None:
                 continue
+            note = getattr(c, "user_note", None)
+            has_corrected = bool(note and getattr(note, "is_corrected", False))
+            eff_lat, eff_lon = _effective_coords(c)
             data.append({
                 "gc_code":    c.gc_code,
                 "name":       c.name or "",
@@ -333,6 +348,9 @@ class MapWidget(QWidget):
                 "terrain":    c.terrain or 0,
                 "lat":        c.latitude,
                 "lon":        c.longitude,
+                "clat":       eff_lat,       # korrigeret lat (samme som lat hvis ikke korrigeret)
+                "clon":       eff_lon,       # korrigeret lon
+                "corrected":  has_corrected,
                 "colour":     _cache_colour(c.cache_type or ""),
                 "found":      c.found,
             })
