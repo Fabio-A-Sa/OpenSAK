@@ -169,16 +169,20 @@ class FilterDialog(QDialog):
     def __init__(self, parent=None, current_filterset: Optional[FilterSet] = None):
         super().__init__(parent)
         self.setWindowTitle(tr("filter_dialog_title"))
-        self.setMinimumSize(620, 740)
         self._attr_boxes: dict[int, TriStateBox] = {}
-        # Sæt startsstørrelse til 80% af skærmen (min 620x830)
+        # Startsstørrelse: 70% af skærm, aldrig større end 1000x850
         from PySide6.QtWidgets import QApplication
         screen = QApplication.primaryScreen()
         if screen:
             rect = screen.availableGeometry()
-            w = max(620, int(rect.width()  * 0.80))
-            h = max(830, int(rect.height() * 0.80))
+            w = min(1000, int(rect.width()  * 0.70))
+            h = min(850,  int(rect.height() * 0.70))
             self.resize(w, h)
+            # Centrér på skærmen
+            self.move(
+                rect.x() + (rect.width()  - w) // 2,
+                rect.y() + (rect.height() - h) // 2,
+            )
         self._setup_ui()
         if current_filterset:
             self._load_filterset(current_filterset)
