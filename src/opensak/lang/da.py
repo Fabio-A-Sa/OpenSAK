@@ -465,6 +465,28 @@ STRINGS: dict[str, str] = {
     "mid_placeholder":              "f.eks. N55 47.250 E012 25.000",
     "mid_result_group":             "Midtpunkt",
 
+    # ── Korrigerede koordinater ───────────────────────────────────────────────
+    "detail_corrected_coords":      "Korrigerede koordinater",
+    "detail_corrected_tooltip":     "Klik for at åbne korrigerede koordinater i kortapp",
+    "detail_corrected_edit_btn":    "✏️  Rediger",
+    "detail_corrected_edit_tooltip":"Rediger korrigerede koordinater",
+    "detail_corrected_clear_tooltip":"Slet korrigerede koordinater",
+    "detail_corrected_add_btn":     "Tilføj korrigerede koordinater…",
+
+    "col_corrected":                "📍",
+    "col_corrected_tooltip":        "Korrigerede koordinater: {coords}",
+
+    "ctx_add_corrected":            "📍  Tilføj korrigerede koordinater…",
+    "ctx_edit_corrected":           "📍  Rediger korrigerede koordinater…",
+    "ctx_clear_corrected":          "✕  Slet korrigerede koordinater",
+
+    "corrected_dialog_title":       "Korrigerede koordinater",
+    "corrected_dialog_heading":     "Korrigerede koordinater — {gc_code}",
+    "corrected_dialog_hint":        "Indtast de løste koordinater i DMM, DMS eller DD format. De bruges ved GPS export og vises på kortet.",
+    "corrected_dialog_input_label": "Koordinater:",
+    "corrected_dialog_placeholder": "f.eks. N55 47.250 E012 25.000",
+    "corrected_dialog_parse_error": "Ukendt koordinatformat — prøv f.eks. N55 47.250 E012 25.000",
+
     # ── Afstand & retning dialog ──────────────────────────────────────────────
     "dist_title":                   "Afstand & Retning",
     "dist_point_a":                 "Koordinat A (fra)",

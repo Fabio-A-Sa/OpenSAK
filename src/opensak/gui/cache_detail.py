@@ -1,6 +1,7 @@
 """
 src/opensak/gui/cache_detail.py — Cache detail panel (right side).
 Shows name, type, D/T, description, hints and recent logs.
+Supports corrected coordinates (user-solved mystery cache finals).
 """
 
 from __future__ import annotations
@@ -89,6 +90,73 @@ class CacheDetailPanel(QWidget):
         meta_layout.addStretch()
         layout.addWidget(meta_frame)
 
+        # ── Corrected coordinates row ─────────────────────────────────────────
+        self._corrected_frame = QFrame()
+        self._corrected_frame.setFrameShape(QFrame.Shape.StyledPanel)
+        self._corrected_frame.setStyleSheet(
+            "QFrame { background-color: #fff8e1; border: 1px solid #f9a825; border-radius: 4px; }"
+        )
+        corrected_layout = QHBoxLayout(self._corrected_frame)
+        corrected_layout.setContentsMargins(8, 4, 8, 4)
+        corrected_layout.setSpacing(8)
+
+        # 📍 ikon + label
+        pin_lbl = QLabel("📍")
+        pin_lbl.setStyleSheet("border: none; background: transparent;")
+        corrected_layout.addWidget(pin_lbl)
+
+        corrected_col = QVBoxLayout()
+        corrected_col.setSpacing(1)
+        cap_corrected = QLabel(tr("detail_corrected_coords"))
+        cap_corrected.setStyleSheet("color: #e65100; font-size: 10px; border: none; background: transparent;")
+        self._corrected_lbl = QLabel("—")
+        corrected_font = QFont()
+        corrected_font.setPointSize(10)
+        corrected_font.setBold(True)
+        self._corrected_lbl.setFont(corrected_font)
+        self._corrected_lbl.setStyleSheet(
+            "color: #e65100; text-decoration: underline; border: none; background: transparent;"
+        )
+        self._corrected_lbl.setCursor(Qt.CursorShape.PointingHandCursor)
+        self._corrected_lbl.setToolTip(tr("detail_corrected_tooltip"))
+        self._corrected_lbl.mousePressEvent = self._open_corrected_in_maps
+        corrected_col.addWidget(cap_corrected)
+        corrected_col.addWidget(self._corrected_lbl)
+        corrected_layout.addLayout(corrected_col)
+
+        corrected_layout.addStretch()
+
+        # Rediger knap
+        self._edit_corrected_btn = QPushButton(tr("detail_corrected_edit_btn"))
+        self._edit_corrected_btn.setToolTip(tr("detail_corrected_edit_tooltip"))
+        self._edit_corrected_btn.setMaximumHeight(28)
+        self._edit_corrected_btn.clicked.connect(self._edit_corrected_coords)
+        corrected_layout.addWidget(self._edit_corrected_btn)
+
+        # Slet knap
+        self._clear_corrected_btn = QPushButton("✕")
+        self._clear_corrected_btn.setToolTip(tr("detail_corrected_clear_tooltip"))
+        self._clear_corrected_btn.setMaximumWidth(28)
+        self._clear_corrected_btn.setMaximumHeight(28)
+        self._clear_corrected_btn.setStyleSheet("color: #c62828;")
+        self._clear_corrected_btn.clicked.connect(self._clear_corrected_coords)
+        corrected_layout.addWidget(self._clear_corrected_btn)
+
+        self._corrected_frame.setVisible(False)   # skjult indtil en cache vises
+        layout.addWidget(self._corrected_frame)
+
+        # Tilføj-knap til corrected coords (vises når der IKKE er korrigerede koordinater)
+        self._add_corrected_row = QHBoxLayout()
+        self._add_corrected_btn = QPushButton("📍  " + tr("detail_corrected_add_btn"))
+        self._add_corrected_btn.setStyleSheet("color: #e65100; font-size: 10px;")
+        self._add_corrected_btn.setFlat(True)
+        self._add_corrected_btn.setMaximumHeight(22)
+        self._add_corrected_btn.clicked.connect(self._edit_corrected_coords)
+        self._add_corrected_btn.setVisible(False)
+        self._add_corrected_row.addWidget(self._add_corrected_btn)
+        self._add_corrected_row.addStretch()
+        layout.addLayout(self._add_corrected_row)
+
         # ── Placed by / hidden date ───────────────────────────────────────────
         self._placed_lbl = QLabel("")
         self._placed_lbl.setStyleSheet("color: gray; font-size: 11px;")
@@ -176,6 +244,12 @@ class CacheDetailPanel(QWidget):
             url = get_settings().get_maps_url(self._current_lat, self._current_lon)
             webbrowser.open(url)
 
+    def _open_corrected_in_maps(self, event=None) -> None:
+        """Åbn korrigerede koordinater i kortapp."""
+        if self._corrected_lat is not None:
+            url = get_settings().get_maps_url(self._corrected_lat, self._corrected_lon)
+            webbrowser.open(url)
+
     def _open_on_geocaching(self, event=None) -> None:
         """Åbn cache-siden på geocaching.com i standard browseren."""
         if hasattr(self, '_current_gc_code') and self._current_gc_code:
@@ -194,18 +268,71 @@ class CacheDetailPanel(QWidget):
         fmt = get_settings().coord_format
         return format_coords(lat, lon, fmt)
 
+    def _edit_corrected_coords(self) -> None:
+        """Åbn dialog til at indtaste/redigere korrigerede koordinater."""
+        if not self._current_gc_code:
+            return
+        from opensak.gui.dialogs.corrected_coords_dialog import CorrectedCoordsDialog
+        dlg = CorrectedCoordsDialog(
+            gc_code=self._current_gc_code,
+            current_lat=self._corrected_lat,
+            current_lon=self._corrected_lon,
+            parent=self,
+        )
+        if dlg.exec():
+            lat, lon = dlg.get_coords()
+            self._save_corrected_coords(lat, lon)
+
+    def _clear_corrected_coords(self) -> None:
+        """Slet korrigerede koordinater for den aktuelle cache."""
+        if not self._current_gc_code:
+            return
+        self._save_corrected_coords(None, None)
+
+    def _save_corrected_coords(self, lat, lon) -> None:
+        """Gem korrigerede koordinater i databasen og opdater UI."""
+        from opensak.db.database import get_session
+        from opensak.db.models import UserNote, Cache as CacheModel
+        with get_session() as session:
+            cache_row = session.query(CacheModel).filter_by(
+                gc_code=self._current_gc_code
+            ).first()
+            if not cache_row:
+                return
+            note = cache_row.user_note
+            if note is None:
+                note = UserNote(cache_id=cache_row.id)
+                session.add(note)
+            note.corrected_lat = lat
+            note.corrected_lon = lon
+            note.is_corrected = (lat is not None and lon is not None)
+
+        self._corrected_lat = lat
+        self._corrected_lon = lon
+        self._update_corrected_ui()
+
+    def _update_corrected_ui(self) -> None:
+        """Opdater visningen af korrigerede koordinater."""
+        has_corrected = self._corrected_lat is not None
+        self._corrected_frame.setVisible(has_corrected)
+        self._add_corrected_btn.setVisible(
+            not has_corrected and self._current_gc_code is not None
+        )
+        if has_corrected:
+            self._corrected_lbl.setText(
+                self._format_coords(self._corrected_lat, self._corrected_lon)
+            )
+
     def clear(self) -> None:
         self._current_gc_code = None
         self._current_lat = None
         self._current_lon = None
+        self._corrected_lat = None
+        self._corrected_lon = None
         self._coords_lbl.setStyleSheet("")
         self._title.setText(tr("detail_select_cache"))
         self._gc_code_lbl.setText("—")
         self._gc_code_lbl.setStyleSheet("")
-        self._current_gc_code = None
-        self._current_lat = None
-        self._current_lon = None
-        self._coords_lbl.setStyleSheet("")
         self._type_lbl.setText("—")
         self._dt_lbl.setText("—")
         self._container_lbl.setText("—")
@@ -221,6 +348,8 @@ class CacheDetailPanel(QWidget):
         self._log_search.setText("")
         self._cached_logs = []
         self._conv_btn.setEnabled(False)
+        self._corrected_frame.setVisible(False)
+        self._add_corrected_btn.setVisible(False)
 
     def show_cache(self, cache: Cache) -> None:
         """Populate the panel with data from *cache*."""
@@ -267,6 +396,14 @@ class CacheDetailPanel(QWidget):
             self._current_lon = None
             self._conv_btn.setEnabled(False)
 
+        # Korrigerede koordinater fra UserNote
+        self._corrected_lat = None
+        self._corrected_lon = None
+        if cache.user_note and cache.user_note.is_corrected:
+            self._corrected_lat = cache.user_note.corrected_lat
+            self._corrected_lon = cache.user_note.corrected_lon
+        self._update_corrected_ui()
+
         # Placed by / date
         parts = []
         if cache.placed_by:
@@ -306,7 +443,6 @@ class CacheDetailPanel(QWidget):
             key=lambda l: l.log_date or 0,
             reverse=True
         )
-        # Gem alle logs til søgning
         self._cached_logs = logs
         self._log_search.setText("")
         self._tabs.setTabText(2, tr("detail_tab_logs_count", count=len(logs)) if logs else tr("detail_tab_logs"))
@@ -339,13 +475,12 @@ class CacheDetailPanel(QWidget):
             return
 
         html = []
-        for log in filtered[:20]:   # max 20 ad gangen
+        for log in filtered[:20]:
             colour = colours.get(log.log_type, "#555555")
             date_str = log.log_date.strftime("%d.%m.%Y") if log.log_date else "?"
             text = log.text or ""
             if len(text) > 500:
                 text = text[:500] + "…"
-            # Fremhæv søgetekst
             if filter_text and filter_text in text.lower():
                 idx = text.lower().find(filter_text)
                 text = (

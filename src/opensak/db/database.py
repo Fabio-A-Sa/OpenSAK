@@ -101,8 +101,35 @@ def init_db(db_path: Path | None = None) -> Engine:
     # Create all tables that don't exist yet (safe to call multiple times)
     Base.metadata.create_all(_engine)
 
+    # Kør schema-migrationer for eksisterende databaser
+    _run_migrations(_engine)
+
     return _engine
 
+
+
+
+# ── Schema migrationer ────────────────────────────────────────────────────────
+
+def _run_migrations(engine: Engine) -> None:
+    """
+    Kør inkrementelle schema-migrationer på en eksisterende database.
+
+    Hver migration tjekker om kolonnen/tabellen allerede findes og springer
+    over hvis ja — så er det sikkert at kalde ved hver opstart.
+    """
+    with engine.connect() as conn:
+        # ── Migration 1: Tilføj is_corrected til user_notes ──────────────────
+        existing = [
+            row[1]
+            for row in conn.execute(text("PRAGMA table_info(user_notes)")).fetchall()
+        ]
+        if "is_corrected" not in existing:
+            conn.execute(text(
+                "ALTER TABLE user_notes ADD COLUMN is_corrected BOOLEAN NOT NULL DEFAULT 0"
+            ))
+            conn.commit()
+            print("Migration: tilføjede user_notes.is_corrected")
 
 def get_engine() -> Engine:
     """Return the current engine, raising if init_db() hasn't been called."""

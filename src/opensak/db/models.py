@@ -8,7 +8,7 @@ Waypoint      — additional waypoints linked to a cache (parking, stages, etc.)
 Log           — individual log entries (found it, didn't find it, etc.)
 Attribute     — cache attributes (dog-friendly, night cache, etc.)
 Trackable     — trackable items (Travel Bugs, geocoins) seen in a cache
-UserNote      — personal notes attached to a cache
+UserNote      — personal notes attached to a cache (incl. corrected coordinates)
 """
 
 from __future__ import annotations
@@ -227,15 +227,25 @@ class Trackable(Base):
 # ── UserNote ──────────────────────────────────────────────────────────────────
 
 class UserNote(Base):
-    """Personal notes for a cache — one note per cache, owned by the local user."""
+    """
+    Personal notes for a cache — one note per cache, owned by the local user.
+
+    corrected_lat / corrected_lon store user-solved coordinates (e.g. for
+    mystery caches). is_corrected is set to True when corrected coords are
+    present so they can be filtered and displayed distinctly in the UI.
+    """
     __tablename__ = "user_notes"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     cache_id: Mapped[int] = mapped_column(ForeignKey("caches.id"), nullable=False, unique=True)
 
     note: Mapped[Optional[str]] = mapped_column(Text)
-    corrected_lat: Mapped[Optional[float]] = mapped_column(Float)   # user-corrected coords
+
+    # Corrected coordinates (user-solved, e.g. mystery cache finals)
+    corrected_lat: Mapped[Optional[float]] = mapped_column(Float)
     corrected_lon: Mapped[Optional[float]] = mapped_column(Float)
+    is_corrected: Mapped[bool] = mapped_column(Boolean, default=False)
+
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow, onupdate=_utcnow)
 
     # Relationships

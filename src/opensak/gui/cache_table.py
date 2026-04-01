@@ -43,6 +43,7 @@ def get_column_defs() -> dict:
         "premium_only": (tr("col_premium"),           65),
         "archived":     (tr("col_archived"),          70),
         "favorite":     (tr("col_favorite"),          60),
+        "corrected":    (tr("col_corrected"),         40),
     }
 
 
@@ -113,7 +114,8 @@ class CacheTableModel(QAbstractTableModel):
 
         if role == Qt.ItemDataRole.TextAlignmentRole:
             if col in ("difficulty", "terrain", "distance", "found",
-                       "dnf", "premium_only", "archived", "log_count"):
+                       "dnf", "premium_only", "archived", "log_count",
+                       "corrected"):
                 return Qt.AlignmentFlag.AlignCenter
             return Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter
 
@@ -128,6 +130,14 @@ class CacheTableModel(QAbstractTableModel):
                 font = QFont()
                 font.setItalic(True)
                 return font
+
+        if role == Qt.ItemDataRole.ToolTipRole:
+            if col == "corrected":
+                note = cache.user_note
+                if note and note.is_corrected:
+                    fmt = get_settings().coord_format
+                    coords = format_coords(note.corrected_lat, note.corrected_lon, fmt)
+                    return tr("col_corrected_tooltip", coords=coords)
 
         if role == Qt.ItemDataRole.UserRole:
             return cache
@@ -195,6 +205,9 @@ class CacheTableModel(QAbstractTableModel):
             return "✓" if cache.archived else ""
         if col == "favorite":
             return "★" if cache.favorite_point else ""
+        if col == "corrected":
+            note = cache.user_note
+            return "📍" if (note and note.is_corrected) else ""
         return ""
 
     def sort(self, column: int, order=Qt.SortOrder.AscendingOrder) -> None:
@@ -213,6 +226,13 @@ class CacheTableModel(QAbstractTableModel):
             )
         elif col == "found":
             self._caches.sort(key=lambda c: int(c.found), reverse=reverse)
+        elif col == "corrected":
+            self._caches.sort(
+                key=lambda c: int(
+                    bool(c.user_note and c.user_note.is_corrected)
+                ),
+                reverse=reverse,
+            )
         elif col == "log_count":
             self._caches.sort(
                 key=lambda c: len(c.logs) if c.logs else 0, reverse=reverse
@@ -257,7 +277,6 @@ class CacheTableView(QTableView):
         self._apply_column_widths()
         self.horizontalHeader().setSortIndicatorShown(True)
         self.selectionModel().currentRowChanged.connect(self._on_row_changed)
-        # Højreklik kontekstmenu
         self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.customContextMenuRequested.connect(self._show_context_menu)
 
@@ -268,7 +287,6 @@ class CacheTableView(QTableView):
             width = get_column_defs().get(col_id, (col_id, 80))[1]
             self.setColumnWidth(i, width)
             header.setSectionResizeMode(i, QHeaderView.ResizeMode.Interactive)
-        # Stretch navn-kolonnen hvis den findes
         if "name" in columns:
             name_idx = columns.index("name")
             header.setSectionResizeMode(
@@ -339,6 +357,24 @@ class CacheTableView(QTableView):
 
         menu.addSeparator()
 
+        # Korrigerede koordinater
+        note = cache.user_note
+        has_corrected = note and note.is_corrected
+        if has_corrected:
+            act_edit_corrected = menu.addAction(tr("ctx_edit_corrected"))
+        else:
+            act_edit_corrected = menu.addAction(tr("ctx_add_corrected"))
+        act_edit_corrected.triggered.connect(
+            lambda checked=False, c=cache: self._edit_corrected(c)
+        )
+        if has_corrected:
+            act_clear_corrected = menu.addAction(tr("ctx_clear_corrected"))
+            act_clear_corrected.triggered.connect(
+                lambda checked=False, c=cache: self._clear_corrected(c)
+            )
+
+        menu.addSeparator()
+
         # Marker som fundet / ikke fundet
         if cache.found:
             act_found = menu.addAction(tr("ctx_mark_not_found"))
@@ -348,6 +384,52 @@ class CacheTableView(QTableView):
             act_found.triggered.connect(lambda: self._toggle_found(cache, True))
 
         menu.exec(self.viewport().mapToGlobal(pos))
+
+    def _edit_corrected(self, cache: Cache) -> None:
+        """Åbn dialog til at sætte/redigere korrigerede koordinater."""
+        from opensak.gui.dialogs.corrected_coords_dialog import CorrectedCoordsDialog
+        note = cache.user_note
+        cur_lat = note.corrected_lat if (note and note.is_corrected) else None
+        cur_lon = note.corrected_lon if (note and note.is_corrected) else None
+        dlg = CorrectedCoordsDialog(
+            gc_code=cache.gc_code,
+            current_lat=cur_lat,
+            current_lon=cur_lon,
+            parent=self,
+        )
+        if dlg.exec():
+            lat, lon = dlg.get_coords()
+            self._save_corrected(cache, lat, lon)
+
+    def _clear_corrected(self, cache: Cache) -> None:
+        """Slet korrigerede koordinater."""
+        self._save_corrected(cache, None, None)
+
+    def _save_corrected(self, cache: Cache, lat, lon) -> None:
+        from opensak.db.database import get_session
+        from opensak.db.models import UserNote, Cache as CacheModel
+        with get_session() as session:
+            cache_row = session.query(CacheModel).filter_by(
+                gc_code=cache.gc_code
+            ).first()
+            if not cache_row:
+                return
+            note = cache_row.user_note
+            if note is None:
+                note = UserNote(cache_id=cache_row.id)
+                session.add(note)
+            note.corrected_lat = lat
+            note.corrected_lon = lon
+            note.is_corrected = (lat is not None and lon is not None)
+        # Opdatér lokal cache-objekt og refresh
+        if cache.user_note is None:
+            from opensak.db.models import UserNote as UN
+            cache.user_note = UN.__new__(UN)
+        cache.user_note.corrected_lat = lat
+        cache.user_note.corrected_lon = lon
+        cache.user_note.is_corrected = (lat is not None and lon is not None)
+        self._model.beginResetModel()
+        self._model.endResetModel()
 
     def _open_converter(self, lat: float, lon: float) -> None:
         """Åbn koordinatkonverter popup."""
@@ -366,7 +448,6 @@ class CacheTableView(QTableView):
             c = session.query(CacheModel).filter_by(gc_code=cache.gc_code).first()
             if c:
                 c.found = found
-        # Opdatér den lokale cache objekt og refresh
         cache.found = found
         self._model.beginResetModel()
         self._model.endResetModel()

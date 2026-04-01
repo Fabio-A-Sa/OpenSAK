@@ -465,6 +465,28 @@ STRINGS: dict[str, str] = {
     "mid_placeholder":              "e.g. N55 47.250 E012 25.000",
     "mid_result_group":             "Midpoint",
 
+    # ── Corrected coordinates ─────────────────────────────────────────────────
+    "detail_corrected_coords":      "Corrected coordinates",
+    "detail_corrected_tooltip":     "Click to open corrected coordinates in map app",
+    "detail_corrected_edit_btn":    "✏️  Edit",
+    "detail_corrected_edit_tooltip":"Edit corrected coordinates",
+    "detail_corrected_clear_tooltip":"Clear corrected coordinates",
+    "detail_corrected_add_btn":     "Add corrected coordinates…",
+
+    "col_corrected":                "📍",
+    "col_corrected_tooltip":        "Corrected coordinates: {coords}",
+
+    "ctx_add_corrected":            "📍  Add corrected coordinates…",
+    "ctx_edit_corrected":           "📍  Edit corrected coordinates…",
+    "ctx_clear_corrected":          "✕  Clear corrected coordinates",
+
+    "corrected_dialog_title":       "Corrected Coordinates",
+    "corrected_dialog_heading":     "Corrected coordinates — {gc_code}",
+    "corrected_dialog_hint":        "Enter the solved coordinates in DMM, DMS or DD format. These will be used for GPS export and shown on the map.",
+    "corrected_dialog_input_label": "Coordinates:",
+    "corrected_dialog_placeholder": "e.g. N55 47.250 E012 25.000",
+    "corrected_dialog_parse_error": "Unknown coordinate format — try e.g. N55 47.250 E012 25.000",
+
     # ── Distance & bearing dialog ─────────────────────────────────────────────
     "dist_title":                   "Distance & Bearing",
     "dist_point_a":                 "Coordinate A (from)",

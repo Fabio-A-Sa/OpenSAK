@@ -465,6 +465,28 @@ STRINGS: dict[str, str] = {
     "mid_placeholder":              "ex. N55 47.250 E012 25.000",
     "mid_result_group":             "Point médian",
 
+    # ── Coordonnées corrigées ─────────────────────────────────────────────────
+    "detail_corrected_coords":      "Coordonnées corrigées",
+    "detail_corrected_tooltip":     "Cliquer pour ouvrir les coordonnées corrigées dans l'application de carte",
+    "detail_corrected_edit_btn":    "✏️  Modifier",
+    "detail_corrected_edit_tooltip":"Modifier les coordonnées corrigées",
+    "detail_corrected_clear_tooltip":"Supprimer les coordonnées corrigées",
+    "detail_corrected_add_btn":     "Ajouter des coordonnées corrigées…",
+
+    "col_corrected":                "📍",
+    "col_corrected_tooltip":        "Coordonnées corrigées : {coords}",
+
+    "ctx_add_corrected":            "📍  Ajouter des coordonnées corrigées…",
+    "ctx_edit_corrected":           "📍  Modifier les coordonnées corrigées…",
+    "ctx_clear_corrected":          "✕  Supprimer les coordonnées corrigées",
+
+    "corrected_dialog_title":       "Coordonnées corrigées",
+    "corrected_dialog_heading":     "Coordonnées corrigées — {gc_code}",
+    "corrected_dialog_hint":        "Saisir les coordonnées résolues au format DMM, DMS ou DD. Elles seront utilisées pour l'export GPS et affichées sur la carte.",
+    "corrected_dialog_input_label": "Coordonnées :",
+    "corrected_dialog_placeholder": "ex. N55 47.250 E012 25.000",
+    "corrected_dialog_parse_error": "Format de coordonnées inconnu — essayez par ex. N55 47.250 E012 25.000",
+
     # ── Distance & cap ────────────────────────────────────────────────────────
     "dist_title":                   "Distance & Cap",
     "dist_point_a":                 "Coordonnées A (de)",

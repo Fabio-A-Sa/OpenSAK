@@ -34,6 +34,7 @@ _ALL_COLUMNS_DEF = [
     ("premium_only", "col_premium",      65, False),
     ("archived",     "col_archived",     70, False),
     ("favorite",     "col_favorite",     60,  True),
+    ("corrected",    "col_corrected",    40, False),
 ]
 
 def get_all_columns():

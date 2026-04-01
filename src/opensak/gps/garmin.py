@@ -5,6 +5,11 @@ Understøtter alle Garmin enheder der monteres som USB drev og
 accepterer GPX filer i /Garmin/GPX/ mappen.
 
 Testet med: GPSMAP64s, Oregon750
+
+Corrected coordinates: Hvis en cache har bruger-korrigerede koordinater
+(user_note.is_corrected), bruges disse som waypoint-koordinater i GPX
+filen. De originale koordinater gemmes i en groundspeak:original_coords
+kommentar, så de ikke mistes.
 """
 
 from __future__ import annotations
@@ -103,7 +108,6 @@ def _linux_mounts() -> list[Path]:
                     continue
                 device, mountpoint, fstype = parts[0], parts[1], parts[2]
                 mount = Path(mountpoint)
-                # VIGTIGT: korrekt operator-prioritet med parenteser
                 if mount.is_dir() and (
                     device.startswith("/dev/sd")
                     or device.startswith("/dev/sdb")
@@ -115,7 +119,6 @@ def _linux_mounts() -> list[Path]:
         pass
 
     # ── Metode 3: Direkte scanning — kun ét niveau dybt ───────────────────────
-    # /media/username/DEVICE  eller  /run/media/username/DEVICE
     import getpass
     username = getpass.getuser()
 
@@ -127,10 +130,9 @@ def _linux_mounts() -> list[Path]:
     ]:
         if not base.exists():
             continue
-        for item in base.iterdir():          # iterdir() = kun ét niveau (ikke rglob!)
+        for item in base.iterdir():
             if item.is_dir() and item != base:
                 candidates.add(item)
-        # Tjek også ét niveau dybere (f.eks. /media/username/DEVICE)
         for sub in base.glob("*/"):
             if sub.is_dir():
                 candidates.add(sub)
@@ -146,15 +148,12 @@ def _is_removable_path(path: Path) -> bool:
         "/run/media/",
         "/mnt/",
     )
-    # Udeluk systemstier
     system_paths = ("/", "/boot", "/home", "/usr", "/var", "/etc", "/tmp",
                     "/proc", "/sys", "/dev", "/run/user")
     if path_str in system_paths:
         return False
-    # Accepter kendte flytbare stier
     if any(path_str.startswith(p) for p in removable_prefixes):
         return True
-    # Tjek via /sys/block om det er en flytbar enhed
     try:
         result = subprocess.run(
             ["lsblk", "--output", "MOUNTPOINT,RM", "--raw", "--noheadings"],
@@ -214,10 +213,30 @@ def debug_scan() -> str:
 
 # ── GPX generator ─────────────────────────────────────────────────────────────
 
+def _effective_coords(cache) -> tuple[float, float]:
+    """
+    Returner de koordinater der skal bruges til GPX export.
+
+    Hvis cachen har korrigerede koordinater (user_note.is_corrected),
+    bruges disse. Ellers bruges de originale koordinater.
+    """
+    note = getattr(cache, "user_note", None)
+    if note and getattr(note, "is_corrected", False):
+        lat = note.corrected_lat
+        lon = note.corrected_lon
+        if lat is not None and lon is not None:
+            return lat, lon
+    return cache.latitude, cache.longitude
+
+
 def generate_gpx(caches: list, filename: str = "opensak_export") -> str:
     """
     Generer GPX 1.1 indhold fra en liste af Cache objekter.
     Returnerer GPX som en streng klar til at skrive til fil.
+
+    Caches med korrigerede koordinater eksporteres med de korrigerede
+    koordinater som waypoint-position. De originale koordinater bevares
+    i en cmt (comment) feltom muligt.
     """
     from xml.etree.ElementTree import Element, SubElement
     import xml.etree.ElementTree as ET
@@ -242,9 +261,13 @@ def generate_gpx(caches: list, filename: str = "opensak_export") -> str:
         if cache.latitude is None or cache.longitude is None:
             continue
 
+        # Brug korrigerede koordinater hvis de findes
+        export_lat, export_lon = _effective_coords(cache)
+        has_corrected = (export_lat != cache.latitude or export_lon != cache.longitude)
+
         wpt = SubElement(gpx, "wpt")
-        wpt.set("lat", f"{cache.latitude:.6f}")
-        wpt.set("lon", f"{cache.longitude:.6f}")
+        wpt.set("lat", f"{export_lat:.6f}")
+        wpt.set("lon", f"{export_lon:.6f}")
 
         if cache.hidden_date:
             time_wpt = SubElement(wpt, "time")
@@ -254,21 +277,29 @@ def generate_gpx(caches: list, filename: str = "opensak_export") -> str:
         name_wpt.text = cache.gc_code or ""
 
         desc_wpt = SubElement(wpt, "desc")
-        desc_wpt.text = (
-            f"{cache.name} by {cache.placed_by or '?'}, "
-            f"{cache.cache_type or ''} "
-            f"({cache.difficulty or '?'}/{cache.terrain or '?'})"
-        )
+        desc_wpt.text = cache.name or ""
 
-        sym = SubElement(wpt, "sym")
-        sym.text = _cache_symbol(cache.cache_type or "")
+        # Gem originale koordinater i comment-feltet hvis vi bruger korrigerede
+        if has_corrected:
+            cmt_wpt = SubElement(wpt, "cmt")
+            cmt_wpt.text = (
+                f"Original: {cache.latitude:.6f}, {cache.longitude:.6f} | "
+                f"Corrected coordinates used for export"
+            )
 
-        type_el = SubElement(wpt, "type")
-        type_el.text = f"Geocache|{cache.cache_type or 'Traditional Cache'}"
+        url_wpt = SubElement(wpt, "url")
+        url_wpt.text = f"https://coord.info/{cache.gc_code}"
 
-        # Groundspeak extension
-        gs_cache = SubElement(wpt, "groundspeak:cache")
-        gs_cache.set("id", str(cache.id or "0"))
+        sym_wpt = SubElement(wpt, "sym")
+        sym_wpt.text = _cache_symbol(cache.cache_type or "")
+
+        type_wpt = SubElement(wpt, "type")
+        type_wpt.text = f"Geocache|{cache.cache_type or 'Traditional Cache'}"
+
+        # Groundspeak extensions
+        extensions = SubElement(wpt, "extensions")
+        gs_cache = SubElement(extensions, "groundspeak:cache")
+        gs_cache.set("id", str(cache.id))
         gs_cache.set("available", "True" if cache.available else "False")
         gs_cache.set("archived", "True" if cache.archived else "False")
 
@@ -403,15 +434,6 @@ def delete_gpx_files(
 ) -> DeleteResult:
     """
     Slet alle GPX filer i Garmin/GPX mappen på enheden.
-
-    Parameters
-    ----------
-    device_root : Rod-sti til GPS enheden
-    pattern     : Glob-mønster for filer der skal slettes (standard: *.gpx)
-
-    Returns
-    -------
-    DeleteResult med liste over slettede og fejlede filer.
     """
     result = DeleteResult()
     result.device = device_root
@@ -420,7 +442,6 @@ def delete_gpx_files(
         gpx_dir = get_garmin_gpx_path(device_root)
 
         if not gpx_dir.exists():
-            # Mappen findes ikke — intet at slette, det er OK
             return result
 
         gpx_files = list(gpx_dir.glob(pattern))
@@ -476,12 +497,7 @@ def export_to_device(
 ) -> ExportResult:
     """
     Eksportér caches til en Garmin GPS enhed.
-
-    Parameters
-    ----------
-    caches      : Liste af Cache objekter
-    device_root : Rod-sti til GPS enheden
-    filename    : Filnavn (uden .gpx extension)
+    Caches med korrigerede koordinater eksporteres med disse.
     """
     result = ExportResult()
     result.device = device_root
