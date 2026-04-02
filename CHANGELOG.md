@@ -11,6 +11,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Favourite points (requires Geocaching.com API)
 
 ---
+## [1.3.5] — 2026
+### Added
+- ** corrected attributes in filter dialog **
+  -
 
 ## [1.3.4] — 2026
 ### Added
