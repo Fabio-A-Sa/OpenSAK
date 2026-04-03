@@ -139,7 +139,7 @@ git push origin main
 - Use `pathlib.Path` for all file paths (cross-platform)
 - Background work runs in `QThread` subclasses — never block the main thread
 - All user-visible strings go through `tr("key")` from `opensak.lang`
-- New UI strings need a matching key in both `lang/da.py` and `lang/en.py`
+- New UI strings need a matching key in `lang/en.py` file
 
 ---
 
