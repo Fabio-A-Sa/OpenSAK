@@ -346,6 +346,12 @@ class MainWindow(QMainWindow):
         self._act_trip_planner.triggered.connect(self._open_trip_planner)
         gps_menu.addAction(self._act_trip_planner)
 
+        gps_menu.addSeparator()
+
+        act_kml_export = QAction(tr("action_kml_export"), self)
+        act_kml_export.triggered.connect(self._open_kml_export)
+        gps_menu.addAction(act_kml_export)
+
         # ── Geocaching Værktøjer ──────────────────────────────────────────────
         gc_tools_menu = menubar.addMenu(tr("menu_gc_tools"))
 
@@ -1351,6 +1357,26 @@ class MainWindow(QMainWindow):
         ]
         caches = [c for c in caches if c is not None]
         dlg = GpsExportDialog(self, caches=caches)
+        dlg.exec()
+
+    def _open_kml_export(self) -> None:
+        if self._trip_planner_active():
+            self._warn_trip_planner_active()
+            return
+        caches = [
+            self._cache_table._model.cache_at(i)
+            for i in range(self._cache_table.row_count())
+        ]
+        caches = [c for c in caches if c is not None]
+        if not caches:
+            QMessageBox.information(
+                self,
+                tr("kml_no_caches_title"),
+                tr("kml_no_caches_msg"),
+            )
+            return
+        from opensak.gui.dialogs.kml_export_dialog import KmlExportDialog
+        dlg = KmlExportDialog(caches, parent=self)
         dlg.exec()
 
     def _open_trip_planner(self) -> None:

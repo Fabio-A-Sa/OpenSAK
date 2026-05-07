@@ -8,6 +8,25 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 For planned features and known issues see the [GitHub Issues list](https://github.com/AgreeDK/opensak/issues).
 
+## [1.13.6] — 2026-05-07
+
+### Added
+
+- **Export to Google Maps (KML)** — New menu item under *GPS → Export to Google Maps (KML)…*
+  exports the currently filtered caches to a `.kml` file that can be imported directly into
+  [Google My Maps](https://www.google.com/maps/d/). The file contains two layers: one for
+  geocaches (colour-coded by cache type with paddle icons) and one for custom waypoints.
+  Corrected coordinates are used automatically when available.
+  Options: include/exclude custom waypoints and already-found caches.
+
+### Fixed
+
+- **Corrected coordinates crash** — Setting corrected coordinates via right-click now saves
+  correctly without crashing. The cache list updates immediately to show the 📍 indicator
+  without requiring a manual refresh.
+
+---
+
 ### [1.13.5] - 2026-05-07
 
 ---

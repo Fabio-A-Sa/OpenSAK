@@ -1043,26 +1043,41 @@ class CacheTableView(QTableView):
     def _save_corrected(self, cache: Cache, lat, lon) -> None:
         from opensak.db.database import get_session
         from opensak.db.models import UserNote, Cache as CacheModel
+        from sqlalchemy.orm import joinedload
         with get_session() as session:
-            cache_row = session.query(CacheModel).filter_by(
-                gc_code=cache.gc_code
-            ).first()
+            cache_row = session.query(CacheModel).options(
+                joinedload(CacheModel.user_note)
+            ).filter_by(gc_code=cache.gc_code).first()
             if not cache_row:
                 return
             note = cache_row.user_note
             if note is None:
                 note = UserNote(cache_id=cache_row.id)
                 session.add(note)
+                session.flush()
             note.corrected_lat = lat
             note.corrected_lon = lon
             note.is_corrected = (lat is not None and lon is not None)
-        # Opdatér lokal cache-objekt og refresh
-        if cache.user_note is None:
-            from opensak.db.models import UserNote as UN
-            cache.user_note = UN.__new__(UN)
-        cache.user_note.corrected_lat = lat
-        cache.user_note.corrected_lon = lon
-        cache.user_note.is_corrected = (lat is not None and lon is not None)
+
+        # Reload det fulde cache-objekt fra DB med user_note eager-loaded,
+        # og erstat det detachede objekt i modellen direkte.
+        # Det undgår alle problemer med at skrive til detached ORM-relationer.
+        with get_session() as session:
+            fresh = session.query(CacheModel).options(
+                joinedload(CacheModel.user_note),
+                joinedload(CacheModel.waypoints),
+                joinedload(CacheModel.attributes),
+            ).filter_by(gc_code=cache.gc_code).first()
+            if fresh is None:
+                return
+
+        # Erstat objektet i listen — find det via gc_code
+        caches = self._model._caches
+        for i, c in enumerate(caches):
+            if c.gc_code == cache.gc_code:
+                caches[i] = fresh
+                break
+
         self._model.beginResetModel()
         self._model.endResetModel()
 
