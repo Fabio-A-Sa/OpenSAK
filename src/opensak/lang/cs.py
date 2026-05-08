@@ -524,6 +524,7 @@ STRINGS: dict[str, str] = {
     "ctx_copy_gc":          "📋  Kopírovat GC kód",
     "ctx_copy_coords":      "📋  Kopírovat souřadnice",
     "ctx_coord_converter":  "⇄  Převodník souřadnic…",
+    "ctx_edit_cache":       "✏️  Upravit keš…",
     "ctx_mark_found":       "☑  Označit jako nalezené",
     "ctx_mark_not_found":   "☐  Označit jako nenalezené",
     "ctx_update_location":  "🌍  Aktualizovat údaje o poloze…",

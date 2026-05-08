@@ -523,6 +523,7 @@ STRINGS: dict[str, str] = {
     "ctx_copy_gc":          "📋  Copier le code GC",
     "ctx_copy_coords":      "📋  Copier les coordonnées",
     "ctx_coord_converter":  "⇄  Convertisseur de coordonnées…",
+    "ctx_edit_cache":       "✏️  Modifier la cache…",
     "ctx_mark_found":       "☑  Marquer comme trouvée",
     "ctx_mark_not_found":   "☐  Marquer comme non trouvée",
     "ctx_update_location":  "🌍  Mettre à jour les données de localisation…",

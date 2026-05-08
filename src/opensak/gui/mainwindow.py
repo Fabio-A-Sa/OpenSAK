@@ -190,6 +190,7 @@ class MainWindow(QMainWindow):
         self._cache_table.flags_changed.connect(self._on_flags_changed)
         self._cache_table.sort_changed.connect(self._on_sort_changed)
         self._cache_table.location_updated.connect(self._refresh_cache_list)
+        self._cache_table.edit_requested.connect(self._edit_waypoint_from_cache)
         self._splitter.addWidget(self._cache_table)
 
         # Bottom container: info bar (fixed) + horisontal splitter (resizable)
@@ -1110,6 +1111,10 @@ class MainWindow(QMainWindow):
         cache = self._cache_table.selected_cache()
         if not cache:
             return
+        self._edit_waypoint_from_cache(cache)
+
+    def _edit_waypoint_from_cache(self, cache) -> None:
+        """Åbn WaypointDialog for en given cache (bruges fra menu og højreklik)."""
         from opensak.gui.dialogs.waypoint_dialog import WaypointDialog
         from opensak.db.database import get_session
         from opensak.db.models import Cache

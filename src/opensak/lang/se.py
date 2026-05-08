@@ -523,6 +523,7 @@ STRINGS: dict[str, str] = {
     "ctx_copy_gc":          "📋  Kopiera GC kod",
     "ctx_copy_coords":      "📋  Kopiera koordinater",
     "ctx_coord_converter":  "⇄  Koordinatkonverterare…",
+    "ctx_edit_cache":       "✏️  Redigera cache…",
     "ctx_mark_found":       "☑  Flagga som hittad",
     "ctx_mark_not_found":   "☐  Flagga som inte hittad",
     "ctx_update_location":  "🌍  Uppdatera platsdata…",

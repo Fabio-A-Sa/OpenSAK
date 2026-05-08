@@ -809,6 +809,7 @@ class CacheTableView(QTableView):
     flags_changed = Signal()          # videresendes fra model
     sort_changed = Signal(str, bool)  # (col_id, ascending) videresendes fra model
     location_updated = Signal()       # emitted after right-click location update
+    edit_requested = Signal(object)   # emitted when user requests edit of a cache
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -1027,6 +1028,14 @@ class CacheTableView(QTableView):
             act_clear_corrected.triggered.connect(
                 lambda checked=False, c=cache: self._clear_corrected(c)
             )
+
+        menu.addSeparator()
+
+        # Rediger cache
+        act_edit = menu.addAction(tr("ctx_edit_cache"))
+        act_edit.triggered.connect(
+            lambda checked=False, c=cache: self.edit_requested.emit(c)
+        )
 
         menu.addSeparator()
 

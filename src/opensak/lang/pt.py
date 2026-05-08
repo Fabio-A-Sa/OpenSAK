@@ -524,6 +524,7 @@ STRINGS: dict[str, str] = {
     "ctx_copy_gc":          "📋  Copiar código GC",
     "ctx_copy_coords":      "📋  Copiar coordenadas",
     "ctx_coord_converter":  "⇄  Conversor de coordenadas…",
+    "ctx_edit_cache":       "✏️  Editar cache…",
     "ctx_mark_found":       "☑  Marcar como encontrada",
     "ctx_mark_not_found":   "☐  Marcar como não encontrada",
     "ctx_update_location":  "🌍  Atualizar dados de localização…",
