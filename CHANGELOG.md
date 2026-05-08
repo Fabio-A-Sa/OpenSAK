@@ -8,6 +8,43 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 For planned features and known issues see the [GitHub Issues list](https://github.com/AgreeDK/opensak/issues).
 
+## [1.13.8] — 2026-05-08
+
+### Added
+
+- **Edit cache in right-click menu** (fixes #124) — A new *✏️ Edit cache…* item has been added
+  to the right-click context menu in the cache list. It opens the same edit dialog as
+  *Waypoint → Edit cache* in the menu bar, making it faster to edit a cache without leaving
+  the list.
+
+- **FTF checkbox in Edit Cache dialog** (fixes #123) — The *Status* tab in the Edit Cache dialog
+  now includes a *FTF (First to Find)* checkbox, making it possible to set or clear the FTF flag
+  manually directly from the dialog.
+
+- **FTF toggle by clicking the FTF column** — Clicking directly on a cell in the FTF column
+  toggles the First to Find flag on or off, the same way the User Flag column works.
+
+- **FTF filter in filter dialog** — A new *FTF (First to Find) 🥇* filter group has been added
+  to the *Other* tab in the filter dialog, allowing you to filter caches by their FTF status.
+
+- **Double-click corrected coordinates cell** (fixes #200) — Double-clicking a cell in the
+  *Corrected* column now opens the corrected coordinates dialog directly, without needing to
+  use the right-click menu.
+
+- **Enhanced corrected coordinates dialog** — The corrected coordinates dialog now shows the
+  cache's original coordinates and the entered corrected coordinates in all three formats
+  (DMM, DMS, DD), each with a copy-to-clipboard button for easy use in other applications.
+
+### Fixed
+
+- **Clear filter button is now red when active** (fixes #201) — The *✕* clear filter button
+  in the toolbar is now displayed in red when a filter is active, making it immediately obvious
+  that the cache list is filtered. The button turns gray and is disabled when no filter is applied.
+
+- **Crash on exit during update check** — OpenSAK could crash with a core dump when closing
+  the window while a background update check was still running. The update worker is now
+  stopped cleanly when the main window closes.
+
 ## [1.13.7] — 2026-05-08
 
 ### Added
