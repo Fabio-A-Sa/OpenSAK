@@ -489,12 +489,16 @@ class MainWindow(QMainWindow):
         self._act_filter.triggered.connect(self._open_filter_dialog)
         tb.addAction(self._act_filter)
 
-        # Nulstil filter — kun ikon, ingen tekst
-        self._act_clear_filter = QAction("✕", self)
-        self._act_clear_filter.setToolTip(tr("toolbar_clear_filter"))
-        self._act_clear_filter.setEnabled(False)
-        self._act_clear_filter.triggered.connect(self._clear_filter)
-        tb.addAction(self._act_clear_filter)
+        # Nulstil filter — rød knap når aktiv, grå når inaktiv
+        self._btn_clear_filter = QPushButton("✕")
+        self._btn_clear_filter.setToolTip(tr("toolbar_clear_filter"))
+        self._btn_clear_filter.setFixedSize(26, 26)
+        self._btn_clear_filter.setFlat(True)
+        self._btn_clear_filter.clicked.connect(self._clear_filter)
+        self._set_clear_filter_active(False)
+        clear_filter_action = QWidgetAction(self)
+        clear_filter_action.setDefaultWidget(self._btn_clear_filter)
+        tb.addAction(clear_filter_action)
 
         # Filter-profil dropdown
         self._filter_profile_combo = QComboBox()
@@ -734,6 +738,12 @@ class MainWindow(QMainWindow):
         s.window_state    = self.saveState()
         self._save_splitter_ratios()
         s.sync()
+        # Stop update workers so they don't make network calls after window close
+        for attr in ("_update_worker", "_manual_update_worker"):
+            worker = getattr(self, attr, None)
+            if worker is not None and worker.isRunning():
+                worker.quit()
+                worker.wait(500)
         super().closeEvent(event)
 
     # ── Cache list ────────────────────────────────────────────────────────────
@@ -1314,8 +1324,7 @@ class MainWindow(QMainWindow):
                         self._current_filterset = profile.filterset
                         self._current_sort = profile.sort
                         self._active_filter_name = profile.name
-                        if hasattr(self, "_act_clear_filter"):
-                            self._act_clear_filter.setEnabled(True)
+                        self._set_clear_filter_active(True)
                         if hasattr(self, "_filter_lbl"):
                             self._filter_lbl.setText(f"🔍 {profile.name}")
                         if hasattr(self, "_filter_profile_combo"):
@@ -1326,8 +1335,7 @@ class MainWindow(QMainWindow):
         # Ingen gemt profil — nulstil filter
         self._current_filterset = FilterSet()
         self._active_filter_name = ""
-        if hasattr(self, "_act_clear_filter"):
-            self._act_clear_filter.setEnabled(False)
+        self._set_clear_filter_active(False)
         if hasattr(self, "_filter_lbl"):
             self._filter_lbl.setText("")
         if hasattr(self, "_filter_profile_combo"):
@@ -1366,7 +1374,7 @@ class MainWindow(QMainWindow):
         self._current_sort = sort
         self._active_filter_name = profile_name
         self._save_sort_for_active_db()
-        self._act_clear_filter.setEnabled(True)
+        self._set_clear_filter_active(True)
         label = profile_name if profile_name else tr("filter_active_label")
         self._filter_lbl.setText(f"🔍 {label}")
         self._quick_filter.setCurrentIndex(0)
@@ -1384,10 +1392,23 @@ class MainWindow(QMainWindow):
         self._statusbar.showMessage(tr("status_filter_result", count=count), 3000)
         self._update_info_bar()
 
+    def _set_clear_filter_active(self, active: bool) -> None:
+        """Sæt klar-filter knappens farve og tilstand — rød når aktiv, grå når inaktiv."""
+        self._btn_clear_filter.setEnabled(active)
+        if active:
+            self._btn_clear_filter.setStyleSheet(
+                "QPushButton { color: #d32f2f; font-size: 14px; font-weight: bold; border: none; }"
+                "QPushButton:hover { color: #b71c1c; }"
+            )
+        else:
+            self._btn_clear_filter.setStyleSheet(
+                "QPushButton { color: #9e9e9e; font-size: 14px; font-weight: bold; border: none; }"
+            )
+
     def _clear_filter(self) -> None:
         self._current_filterset = FilterSet()
         self._active_filter_name = ""
-        self._act_clear_filter.setEnabled(False)
+        self._set_clear_filter_active(False)
         self._filter_lbl.setText("")
         self._populate_filter_profile_combo(select_name=None)
         self._refresh_cache_list()
@@ -1437,7 +1458,7 @@ class MainWindow(QMainWindow):
         self._current_sort = profile.sort
         self._active_filter_name = profile.name
         self._save_sort_for_active_db()
-        self._act_clear_filter.setEnabled(True)
+        self._set_clear_filter_active(True)
         self._filter_lbl.setText(f"🔍 {profile.name}")
         self._quick_filter.setCurrentIndex(0)
         with get_session() as session:
