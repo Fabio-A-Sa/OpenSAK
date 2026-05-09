@@ -8,7 +8,19 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 For planned features and known issues see the [GitHub Issues list](https://github.com/AgreeDK/opensak/issues).
 
-## [1.13.9] — 2026-05-09
+## [1.13.10] — 2026-05-09
+
+### Added
+
+- **Drag & drop to import GPX / ZIP files** (closes #181) — GPX, ZIP and LOC files can now be
+  dragged from a file manager and dropped anywhere on the OpenSAK window. The import dialog opens
+  immediately with the dropped files pre-loaded and ready to import. Multiple files can be dropped
+  at once. Suggested by Fabio-A-Sa.
+
+- **Target database selector in import dialog** — The import dialog now shows a database dropdown
+  pre-filled with the currently active database. Any known database can be selected as the import
+  target, making it possible to import a PQ directly into a specific database without switching
+  the active database first. Works with both drag & drop and the normal Browse button.
 
 ### Added
 

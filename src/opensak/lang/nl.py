@@ -136,6 +136,8 @@ STRINGS: dict[str, str] = {
     "import_errors_header":         "Fouten ({count}):",
     "import_failed":                "✗ Import mislukt:",
     "import_again":                 "Opnieuw importeren",
+    "import_target_db_label":                    "Importeren naar database:",
+    "import_target_db_active":                    "(actief)",
     "import_select_files_label":    "Selecteer een of meer GPX- of Pocket Query ZIP-bestanden:",
     "import_browse_title":          "GPX- of ZIP-bestand selecteren",
     "import_remove_selected":       "Geselecteerde verwijderen",

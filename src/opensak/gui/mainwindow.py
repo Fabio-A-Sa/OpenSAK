@@ -4,7 +4,7 @@ src/opensak/gui/mainwindow.py — Main application window.
 
 from __future__ import annotations
 from PySide6.QtCore import Qt, QTimer
-from PySide6.QtGui import QAction, QKeySequence
+from PySide6.QtGui import QAction, QKeySequence, QDragEnterEvent, QDropEvent
 from PySide6.QtWidgets import (
     QMainWindow, QWidget, QSplitter, QVBoxLayout,
     QFrame, QHBoxLayout, QLabel, QLineEdit, QStatusBar,
@@ -165,6 +165,7 @@ class MainWindow(QMainWindow):
         self._update_title()
         self._reload_home_combo()
         self._reload_db_combo()
+        self.setAcceptDrops(True)
         # Load caches after UI is ready
         QTimer.singleShot(500, self._initial_load)
         # Tjek for opdateringer i baggrunden (5 sek forsinkelse — GUI er klar)
@@ -971,6 +972,43 @@ class MainWindow(QMainWindow):
 
     def _on_quick_filter_changed(self, index: int) -> None:
         self._refresh_cache_list()
+
+    # ── Drag & drop ───────────────────────────────────────────────────────────
+
+    def dragEnterEvent(self, event: QDragEnterEvent) -> None:
+        """Accept drag if it contains GPX or ZIP files."""
+        mime = event.mimeData()
+        if mime.hasUrls():
+            paths = [u.toLocalFile() for u in mime.urls()]
+            if any(p.lower().endswith((".gpx", ".zip", ".loc")) for p in paths):
+                event.acceptProposedAction()
+                return
+        event.ignore()
+
+    def dropEvent(self, event: QDropEvent) -> None:
+        """Open import dialog with dropped GPX/ZIP files pre-loaded."""
+        from pathlib import Path
+        from opensak.gui.dialogs.import_dialog import ImportDialog
+
+        if self._trip_planner_active():
+            self._warn_trip_planner_active()
+            event.ignore()
+            return
+
+        paths = [
+            Path(u.toLocalFile())
+            for u in event.mimeData().urls()
+            if u.toLocalFile().lower().endswith((".gpx", ".zip", ".loc"))
+        ]
+        if not paths:
+            event.ignore()
+            return
+
+        event.acceptProposedAction()
+        dlg = ImportDialog(self)
+        dlg.add_files(paths)
+        dlg.import_completed.connect(self._refresh_after_import)
+        dlg.exec()
 
     def _open_import_dialog(self) -> None:
         if self._trip_planner_active():

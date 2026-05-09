@@ -133,6 +133,8 @@ STRINGS: dict[str, str] = {
     "import_errors_header":         "Chyby ({count}):",
     "import_failed":                "✗ Import selhal:",
     "import_again":                 "Importovat znovu",
+    "import_target_db_label":                    "Importovat do databáze:",
+    "import_target_db_active":                    "(aktivní)",
         "import_select_files_label":  "Vyberte jeden nebo více souborů GPX nebo Pocket Query ZIP:",
     "import_browse_title":          "Vyberte soubor GPX nebo ZIP",
     "import_remove_selected":     "Odebrat vybrané",

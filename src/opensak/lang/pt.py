@@ -133,6 +133,8 @@ STRINGS: dict[str, str] = {
     "import_errors_header":         "Erros ({count}):",
     "import_failed":                "✗ A importação falhou:",
     "import_again":                 "Importar novamente",
+    "import_target_db_label":                    "Importar para a base de dados:",
+    "import_target_db_active":                    "(ativa)",
         "import_select_files_label":  "Selecione um ou mais ficheiros GPX ou ZIP do Pocket Query:",
     "import_browse_title":          "Selecionar ficheiro GPX ou ZIP",
     "import_remove_selected":     "Remover selecionados",

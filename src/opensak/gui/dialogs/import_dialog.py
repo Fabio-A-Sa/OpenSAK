@@ -13,7 +13,7 @@ from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel,
     QPushButton, QFileDialog, QProgressBar,
     QTextEdit, QListWidget, QListWidgetItem,
-    QAbstractItemView,
+    QAbstractItemView, QComboBox,
 )
 
 from opensak.gui.settings import get_settings
@@ -28,39 +28,56 @@ class ImportWorker(QThread):
     progress      = Signal(int)          # cache count within current file
     all_done      = Signal()
 
-    def __init__(self, paths: list[Path]):
+    def __init__(self, paths: list[Path], target_db_path: Path | None = None):
         super().__init__()
         self.paths = paths
+        self.target_db_path = target_db_path  # None → use currently active DB
 
     def run(self) -> None:
-        from opensak.db.database import get_session
+        from opensak.db.database import get_session, init_db
+        from opensak.db.manager import get_db_manager
         from opensak.importer import import_gpx, import_zip
         from opensak.utils.utils import get_import_type, ImportType
 
-        for i, path in enumerate(self.paths):
-            self.file_started.emit(i, path.name)
-            try:
-                import_type: ImportType = get_import_type(path)
-                importers = {
-                    ImportType.GPX: import_gpx,
-                    ImportType.ZIP: import_zip,
-                }
-                import_func = importers[import_type]
+        # Switch to target DB if different from active
+        manager = get_db_manager()
+        original_path = manager.active_path
+        switched = (
+            self.target_db_path is not None
+            and self.target_db_path != original_path
+        )
+        if switched:
+            init_db(db_path=self.target_db_path)
 
-                with get_session() as session:
-                    result = import_func(
-                        path,
-                        session,
-                        progress_cb=self.progress.emit
-                    )
+        try:
+            for i, path in enumerate(self.paths):
+                self.file_started.emit(i, path.name)
+                try:
+                    import_type: ImportType = get_import_type(path)
+                    importers = {
+                        ImportType.GPX: import_gpx,
+                        ImportType.ZIP: import_zip,
+                    }
+                    import_func = importers[import_type]
 
-                self.file_finished.emit(i, result)
+                    with get_session() as session:
+                        result = import_func(
+                            path,
+                            session,
+                            progress_cb=self.progress.emit
+                        )
 
-            except ValueError as e:
-                self.file_error.emit(i, str(e))
-            except Exception:
-                import traceback
-                self.file_error.emit(i, traceback.format_exc())
+                    self.file_finished.emit(i, result)
+
+                except ValueError as e:
+                    self.file_error.emit(i, str(e))
+                except Exception:
+                    import traceback
+                    self.file_error.emit(i, traceback.format_exc())
+        finally:
+            # Always restore the original active DB
+            if switched and original_path is not None:
+                init_db(db_path=original_path)
 
         self.all_done.emit()
 
@@ -79,7 +96,26 @@ class ImportDialog(QDialog):
         self._geo_worker = None
         self._selected_paths: list[Path] = []
         self._any_success = False
+        self._db_combo: QComboBox | None = None
         self._setup_ui()
+        self._populate_db_combo()
+
+    def _populate_db_combo(self) -> None:
+        """Fill the database combo with all known databases; pre-select the active one."""
+        if self._db_combo is None:
+            return
+        from opensak.db.manager import get_db_manager
+        manager = get_db_manager()
+        active_path = manager.active_path
+        self._db_combo.clear()
+        active_index = 0
+        for i, db in enumerate(manager.databases):
+            label = db.name
+            if db.path == active_path:
+                label += f"  {tr('import_target_db_active')}"
+                active_index = i
+            self._db_combo.addItem(label, userData=db.path)
+        self._db_combo.setCurrentIndex(active_index)
 
     def _setup_ui(self) -> None:
         layout = QVBoxLayout(self)
@@ -88,6 +124,17 @@ class ImportDialog(QDialog):
         # ── File selection ────────────────────────────────────────────────────
         file_lbl = QLabel(tr("import_select_files_label"))
         layout.addWidget(file_lbl)
+
+        # ── Database selector ─────────────────────────────────────────────────
+        db_row = QHBoxLayout()
+        db_lbl = QLabel(tr("import_target_db_label"))
+        db_row.addWidget(db_lbl)
+        self._db_combo = QComboBox()
+        self._db_combo.setSizeAdjustPolicy(QComboBox.SizeAdjustPolicy.AdjustToContents)
+        self._db_combo.setMinimumWidth(180)
+        db_row.addWidget(self._db_combo)
+        db_row.addStretch()
+        layout.addLayout(db_row)
 
         # File list widget
         self._file_list = QListWidget()
@@ -137,6 +184,19 @@ class ImportDialog(QDialog):
         self._file_list.itemSelectionChanged.connect(self._on_selection_changed)
 
     # ── File management ───────────────────────────────────────────────────────
+
+    def add_files(self, paths: list[Path]) -> None:
+        """Add files to the import list (used by drag & drop from MainWindow)."""
+        existing_names = {p.name for p in self._selected_paths}
+        for p in paths:
+            if p.name not in existing_names:
+                self._selected_paths.append(p)
+                item = QListWidgetItem(f"⏳  {p.name}")
+                item.setToolTip(str(p))
+                self._file_list.addItem(item)
+                existing_names.add(p.name)
+        if self._selected_paths:
+            self._import_btn.setEnabled(True)
 
     def _browse(self) -> None:
         settings = get_settings()
@@ -194,7 +254,12 @@ class ImportDialog(QDialog):
             item = self._file_list.item(i)
             item.setText(f"⏳  {self._selected_paths[i].name}")
 
-        self._worker = ImportWorker(list(self._selected_paths))
+        target_db_path = (
+            self._db_combo.currentData()
+            if self._db_combo is not None and self._db_combo.count() > 0
+            else None
+        )
+        self._worker = ImportWorker(list(self._selected_paths), target_db_path=target_db_path)
         self._worker.file_started.connect(self._on_file_started)
         self._worker.file_finished.connect(self._on_file_finished)
         self._worker.file_error.connect(self._on_file_error)
