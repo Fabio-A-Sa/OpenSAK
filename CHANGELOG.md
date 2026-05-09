@@ -8,6 +8,26 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 For planned features and known issues see the [GitHub Issues list](https://github.com/AgreeDK/opensak/issues).
 
+## [1.13.9] — 2026-05-09
+
+### Added
+
+- **File → Export menu with GPX, LOC and GGZ support** (closes #203) — A new *Export* submenu
+  has been added under the *File* menu with three file format options:
+  - **GPX** — full Groundspeak GPX 1.1 with cache details, logs and attributes
+  - **LOC** — lightweight waypoint format supported by most GPS apps and devices
+  - **GGZ** — Garmin's ZIP-based container format that lifts the 10,000-cache limit on
+    supported devices (e.g. GPSMAP 64/66, Oregon 700+). The GGZ file contains a full GPX
+    file plus a Garmin index, identical in structure to GSAK's GGZ export.
+
+  All three formats use corrected coordinates automatically when available. Export runs in
+  a background thread so the UI stays responsive for large databases.
+
+- **Export to Google Maps (KML) moved to File → Export** — The *Export to Google Maps (KML)…*
+  item has been moved from the *GPS* menu to the new *File → Export* submenu, where it fits
+  better alongside the other file export formats.
+
+## [1.13.8] — 2026-05-08
 ## [1.13.8] — 2026-05-08
 
 ### Added
@@ -258,3 +278,4 @@ For planned features and known issues see the [GitHub Issues list](https://githu
   databases. An adaptive debounce and minimum-character threshold reduce unnecessary queries while
   typing. Search settings (debounce delay and minimum characters) are available in the new
   *Advanced* tab in the Settings dialog.
+

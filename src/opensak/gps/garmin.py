@@ -1,5 +1,5 @@
 """
-src/opensak/gps/garmin.py — Garmin GPS device detection og GPX export.
+src/opensak/gps/garmin.py — Garmin GPS device detection og GPX/LOC/GGZ export.
 
 Understøtter alle Garmin enheder der monteres som USB drev og
 accepterer GPX filer i /Garmin/GPX/ mappen.
@@ -388,6 +388,235 @@ def _indent(elem, level: int = 0) -> None:
     else:
         if level and (not elem.tail or not elem.tail.strip()):
             elem.tail = indent
+
+
+# ── LOC generator ─────────────────────────────────────────────────────────────
+
+def generate_loc(caches: list) -> str:
+    """
+    Generate LOC 1.0 XML content from a list of Cache objects.
+    Returns the LOC content as a string ready to write to file.
+
+    LOC is a simple waypoint format supported by many GPS apps and devices.
+    It includes GC code, name, coordinates, difficulty, terrain and container.
+    Corrected coordinates are used when available.
+    """
+    from xml.etree.ElementTree import Element, SubElement
+    import xml.etree.ElementTree as ET
+
+    root = Element("loc")
+    root.set("version", "1.0")
+    root.set("src", "OpenSAK")
+
+    for cache in caches:
+        if cache.latitude is None or cache.longitude is None:
+            continue
+
+        export_lat, export_lon = _effective_coords(cache)
+
+        wp = SubElement(root, "waypoint")
+
+        name_el = SubElement(wp, "name")
+        name_el.set("id", cache.gc_code or "")
+        # GSAK format: "Cache name by Owner (D/T)"
+        diff = cache.difficulty or 1.0
+        terr = cache.terrain or 1.0
+        diff_str = f"{diff:g}"
+        terr_str = f"{terr:g}"
+        label = f"{cache.name or ''} by {cache.placed_by or ''} ({diff_str}/{terr_str})"
+        name_el.text = f"<![CDATA[{label}]]>"
+
+        coord_el = SubElement(wp, "coord")
+        coord_el.set("lat", f"{export_lat:.6f}")
+        coord_el.set("lon", f"{export_lon:.6f}")
+
+        type_el = SubElement(wp, "type")
+        type_el.text = "Geocache"
+
+        link_el = SubElement(wp, "link")
+        link_el.set("text", "Waypoint Details")
+        link_el.text = f"http://coord.info/{cache.gc_code}"
+
+        diff_el = SubElement(wp, "difficulty")
+        diff_el.text = str(diff)
+
+        terr_el = SubElement(wp, "terrain")
+        terr_el.text = str(terr)
+
+        container_el = SubElement(wp, "container")
+        container_el.text = cache.container or "Unknown"
+
+    _indent(root)
+    xml_str = ET.tostring(root, encoding="unicode")
+
+    # ET escapes CDATA — replace back the name content with proper CDATA
+    # by re-building the name tags with raw CDATA sections
+    import re
+
+    def _fix_cdata(m: re.Match) -> str:
+        gc_id = m.group(1)
+        inner = m.group(2)
+        # Unescape what ET escaped
+        inner = inner.replace("&lt;", "<").replace("&gt;", ">").replace("&amp;", "&")
+        # Strip the literal CDATA wrapper text that we embedded as plain text
+        inner = inner.replace("<![CDATA[", "").replace("]]>", "")
+        return f'<name id="{gc_id}"><![CDATA[{inner}]]></name>'
+
+    xml_str = re.sub(
+        r'<name id="([^"]*)">&lt;!\[CDATA\[([^\]]*)\]\]&gt;</name>',
+        _fix_cdata,
+        xml_str,
+    )
+
+    return '<?xml version="1.0" encoding="UTF-8"?>\n' + xml_str
+
+
+# ── GGZ generator ─────────────────────────────────────────────────────────────
+
+def generate_ggz(caches: list, filename: str = "opensak_export") -> bytes:
+    """
+    Generate a GGZ file (ZIP archive) from a list of Cache objects.
+    Returns the GGZ content as bytes ready to write to file.
+
+    GGZ structure:
+      data/<filename>.gpx          — full GPX file with all cache data
+      index/com/garmin/geocaches/v0/index.xml — lightweight index for Garmin
+
+    The format allows Garmin devices to load more than the usual 10,000
+    cache limit by using the GGZ container instead of plain GPX files.
+    Corrected coordinates are used when available.
+    """
+    import io
+    import zipfile
+    from xml.etree.ElementTree import Element, SubElement
+    import xml.etree.ElementTree as ET
+    from datetime import datetime, timezone
+
+    gpx_filename = f"{filename}.gpx"
+    gpx_content  = generate_gpx(caches, filename).encode("utf-8")
+
+    # ── CRC32 of the GPX content (hex, uppercase, 8 chars) ────────────────────
+    import binascii
+    crc_val = binascii.crc32(gpx_content) & 0xFFFFFFFF
+    crc_hex = f"{crc_val:08X}"
+
+    now_str = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    # ── Build index.xml ───────────────────────────────────────────────────────
+    ggz_root = Element("ggz")
+    ggz_root.set("xmlns", "http://www.opencaching.com/xmlschemas/ggz/1/0")
+
+    time_el = SubElement(ggz_root, "time")
+    time_el.text = now_str
+
+    file_el = SubElement(ggz_root, "file")
+
+    fname_el = SubElement(file_el, "name")
+    fname_el.text = gpx_filename
+
+    crc_el = SubElement(file_el, "crc")
+    crc_el.text = crc_hex
+
+    ftime_el = SubElement(file_el, "time")
+    ftime_el.text = now_str
+
+    # Track byte offset into the GPX for each cache entry
+    gpx_text = gpx_content.decode("utf-8")
+
+    for cache in caches:
+        if cache.latitude is None or cache.longitude is None:
+            continue
+
+        export_lat, export_lon = _effective_coords(cache)
+        gc_code = cache.gc_code or ""
+
+        # Find byte offset of this waypoint in the GPX
+        search_str = f'<name>{gc_code}</name>'
+        # Look for the <wpt ...> tag that contains this GC code
+        import re
+        pattern = rf'(<wpt\b[^>]*>(?:(?!</wpt>).)*?<name>{re.escape(gc_code)}</name>)'
+        m = re.search(pattern, gpx_text, re.DOTALL)
+        if m:
+            file_pos = gpx_text[:m.start()].encode("utf-8").__len__()
+            file_len = len(m.group(0).encode("utf-8"))
+            # Approximate: include the closing </wpt> tag
+            wpt_end = gpx_text.find("</wpt>", m.start())
+            if wpt_end >= 0:
+                file_len = len(gpx_text[m.start():wpt_end + 6].encode("utf-8"))
+        else:
+            file_pos = 0
+            file_len = 0
+
+        gch_el = SubElement(file_el, "gch")
+
+        code_el = SubElement(gch_el, "code")
+        code_el.text = gc_code
+
+        cname_el = SubElement(gch_el, "name")
+        cname_el.text = cache.name or ""
+
+        ctype_el = SubElement(gch_el, "type")
+        ctype_el.text = cache.cache_type or "Traditional Cache"
+
+        clat_el = SubElement(gch_el, "lat")
+        clat_el.text = str(export_lat)
+
+        clon_el = SubElement(gch_el, "lon")
+        clon_el.text = str(export_lon)
+
+        fpos_el = SubElement(gch_el, "file_pos")
+        fpos_el.text = str(file_pos)
+
+        flen_el = SubElement(gch_el, "file_len")
+        flen_el.text = str(file_len)
+
+        ratings_el = SubElement(gch_el, "ratings")
+
+        awe_el = SubElement(ratings_el, "awesomeness")
+        awe_el.text = "3.0"
+
+        diff_el = SubElement(ratings_el, "difficulty")
+        diff_el.text = str(cache.difficulty or 1.0)
+
+        if cache.container:
+            _CONTAINER_SIZE = {
+                "Micro": 2.0, "Small": 3.0, "Regular": 4.0,
+                "Large": 5.0, "Not chosen": 3.0, "Other": 3.0,
+            }
+            size_val = _CONTAINER_SIZE.get(cache.container)
+            if size_val:
+                size_el = SubElement(ratings_el, "size")
+                size_el.text = str(size_val)
+
+        terr_el = SubElement(ratings_el, "terrain")
+        terr_el.text = str(cache.terrain or 1.0)
+
+        if getattr(cache, "found", False):
+            found_el = SubElement(gch_el, "found")
+            found_el.text = "true"
+
+    _indent(ggz_root)
+    index_xml = (
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\r\n'
+        + ET.tostring(ggz_root, encoding="unicode")
+    )
+
+    # ── Pack into ZIP ─────────────────────────────────────────────────────────
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", compression=zipfile.ZIP_DEFLATED) as zf:
+        zf.mkdir("data/")
+        zf.writestr(f"data/{gpx_filename}", gpx_content)
+        zf.mkdir("index/")
+        zf.mkdir("index/com/")
+        zf.mkdir("index/com/garmin/")
+        zf.mkdir("index/com/garmin/geocaches/")
+        zf.mkdir("index/com/garmin/geocaches/v0/")
+        zf.writestr(
+            "index/com/garmin/geocaches/v0/index.xml",
+            index_xml.encode("utf-8"),
+        )
+
+    return buf.getvalue()
 
 
 # ── Slet GPX filer fra enhed ──────────────────────────────────────────────────

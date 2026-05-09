@@ -246,6 +246,29 @@ class MainWindow(QMainWindow):
 
         file_menu.addSeparator()
 
+        # ── Export submenu ─────────────────────────────────────────────────────
+        export_menu = file_menu.addMenu(tr("menu_export"))
+
+        act_export_gpx = QAction(tr("action_export_gpx"), self)
+        act_export_gpx.triggered.connect(lambda: self._open_file_export("gpx"))
+        export_menu.addAction(act_export_gpx)
+
+        act_export_loc = QAction(tr("action_export_loc"), self)
+        act_export_loc.triggered.connect(lambda: self._open_file_export("loc"))
+        export_menu.addAction(act_export_loc)
+
+        act_export_ggz = QAction(tr("action_export_ggz"), self)
+        act_export_ggz.triggered.connect(lambda: self._open_file_export("ggz"))
+        export_menu.addAction(act_export_ggz)
+
+        export_menu.addSeparator()
+
+        act_kml_export = QAction(tr("action_kml_export"), self)
+        act_kml_export.triggered.connect(self._open_kml_export)
+        export_menu.addAction(act_kml_export)
+
+        file_menu.addSeparator()
+
         act_quit = QAction(tr("action_quit"), self)
         act_quit.setShortcut(QKeySequence("Ctrl+Q"))
         act_quit.triggered.connect(self.close)
@@ -346,12 +369,6 @@ class MainWindow(QMainWindow):
         self._act_trip_planner.setShortcut(QKeySequence("Ctrl+T"))
         self._act_trip_planner.triggered.connect(self._open_trip_planner)
         gps_menu.addAction(self._act_trip_planner)
-
-        gps_menu.addSeparator()
-
-        act_kml_export = QAction(tr("action_kml_export"), self)
-        act_kml_export.triggered.connect(self._open_kml_export)
-        gps_menu.addAction(act_kml_export)
 
         # ── Geocaching Værktøjer ──────────────────────────────────────────────
         gc_tools_menu = menubar.addMenu(tr("menu_gc_tools"))
@@ -1494,6 +1511,34 @@ class MainWindow(QMainWindow):
         ]
         caches = [c for c in caches if c is not None]
         dlg = GpsExportDialog(self, caches=caches)
+        dlg.exec()
+
+    def _open_file_export(self, fmt: str = "gpx") -> None:
+        """Open the file export dialog (GPX / LOC / GGZ)."""
+        if self._trip_planner_active():
+            self._warn_trip_planner_active()
+            return
+        caches = [
+            self._cache_table._model.cache_at(i)
+            for i in range(self._cache_table.row_count())
+        ]
+        caches = [c for c in caches if c is not None]
+        if not caches:
+            QMessageBox.information(
+                self,
+                tr("kml_no_caches_title"),
+                tr("kml_no_caches_msg"),
+            )
+            return
+        from opensak.gui.dialogs.file_export_dialog import FileExportDialog
+        dlg = FileExportDialog(caches, parent=self)
+        # Pre-select the requested format
+        if fmt == "loc":
+            dlg._btn_loc.setChecked(True)
+        elif fmt == "ggz":
+            dlg._btn_ggz.setChecked(True)
+        else:
+            dlg._btn_gpx.setChecked(True)
         dlg.exec()
 
     def _open_kml_export(self) -> None:
