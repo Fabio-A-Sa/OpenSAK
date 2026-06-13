@@ -4,13 +4,17 @@ tests/conftest.py — Shared fixtures for OpenSAK tests.
 
 import os
 
-# QtWebEngine's in-process GPU thread (Chrome_InProcGpuThread) crashes under the
-# test harness — SIGTRAP on macOS where the GPU context is "marked as lost", and
-# the GPU path is also unavailable on the Linux CI runners. The map widget only
-# needs WebEngine to load HTML, never GPU rendering, so force software rendering
-# for the whole test session. Must be set before QtWebEngine initialises (i.e.
-# before the first QWebEngineView is created), so it lives at conftest import
-# time. setdefault() lets the CI workflow override it if it sets its own flags.
+# QtWebEngine starts a Chromium multi-process stack that is unstable under the
+# headless pytest / CI harness: across a long e2e run the render or GPU process
+# crashes with SIGTRAP (exit 133), killing the whole test process — regardless
+# of GPU flags or per-window cleanup. The map and the cache description panel
+# only render simple HTML in tests, so we swap in native Qt widgets and never
+# create Chromium at all. This removes the entire class of WebEngine crashes.
+# Must be set before any widget is constructed, hence at conftest import time.
+os.environ.setdefault("OPENSAK_DISABLE_WEBENGINE", "1")
+
+# Belt-and-suspenders: if any QtWebEngine view is still created (e.g. a future
+# code path), keep it off the GPU so it cannot crash the GPU thread either.
 os.environ.setdefault(
     "QTWEBENGINE_CHROMIUM_FLAGS",
     "--disable-gpu --disable-software-rasterizer --disable-gpu-compositing",
