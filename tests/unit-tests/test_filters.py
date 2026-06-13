@@ -685,6 +685,40 @@ def test_where_clause_in_nested_filterset(tmp_db):
     assert "GC00001" not in codes  # D=1.5
 
 
+def test_apply_filters_defers_description_blobs(tmp_db):
+    """Phase 1: the large free-text blobs are deferred on the table query.
+
+    short_description / long_description / encoded_hints are never shown in the
+    cache table (only in the detail panel, which loads each cache separately).
+    Deferring them keeps the refresh light on large databases. They must remain
+    unloaded after apply_filters() returns.
+    """
+    from sqlalchemy import inspect as sa_inspect
+
+    with get_session() as s:
+        results = apply_filters(s)
+        assert results, "expected seeded caches"
+        for c in results:
+            unloaded = sa_inspect(c).unloaded
+            assert "short_description" in unloaded
+            assert "long_description" in unloaded
+            assert "encoded_hints" in unloaded
+            # A column the table actually reads must be loaded eagerly.
+            assert "name" not in unloaded
+            assert "cache_type" not in unloaded
+
+
+def test_apply_filters_results_unchanged_with_deferral(tmp_db):
+    """Phase 1: deferring blobs must not change which caches are returned."""
+    with get_session() as s:
+        all_codes = {c.gc_code for c in apply_filters(s)}
+        fs = FilterSet(mode="AND")
+        fs.add(CacheTypeFilter(["Traditional Cache"]))
+        traditional = {c.gc_code for c in apply_filters(s, fs)}
+    assert "GC00001" in all_codes
+    assert traditional and traditional <= all_codes
+
+
 def test_where_clause_profile_save_load(tmp_path):
     """FilterProfile containing WhereClauseFilter round-trips the SQL through JSON."""
     sql = "difficulty >= 3 AND terrain <= 4"

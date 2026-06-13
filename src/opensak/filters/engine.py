@@ -777,13 +777,23 @@ def apply_filters(
         isinstance(f, HasTrackableFilter) for f in _iter_filters(filterset)
     )
 
-    from sqlalchemy.orm import joinedload, noload
+    from sqlalchemy.orm import defer, joinedload, noload
     query = session.query(Cache).options(
         joinedload(Cache.attributes) if needs_attributes else noload(Cache.attributes),
         joinedload(Cache.trackables) if needs_trackables else noload(Cache.trackables),
         noload(Cache.logs),       # load on-demand when user opens a cache
         noload(Cache.waypoints),  # load on-demand when user opens a cache
         joinedload(Cache.user_note),  # one-to-one, cheap; needed for corrected-coords
+        # Defer the large free-text blobs — they dominate per-row size but are
+        # never shown in the cache table (only in the detail panel, which loads
+        # each cache separately via _load_full_cache()). Deferring them keeps
+        # the table refresh light on big databases. A load_only() allow-list was
+        # rejected as too fragile: the table model and Python-level filters read
+        # a wide, scattered set of scalar columns, and missing one would trigger
+        # a lazy SELECT per row (N+1). These three blobs carry ~all the weight.
+        defer(Cache.short_description),
+        defer(Cache.long_description),
+        defer(Cache.encoded_hints),
     )
 
     # Push SQL-capable filters into the query before loading rows.
