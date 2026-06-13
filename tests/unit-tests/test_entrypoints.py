@@ -1,9 +1,4 @@
-"""Cover the console-script entry points (opensak / opensak-test).
-
-Both are thin wrappers: run_cli delegates to opensak.app.main, run_test
-shells out to pytest. We stub the heavy callees so the wrappers run
-without launching the GUI or recursing into a real test run.
-"""
+"""Cover the console-script entry points; stub the callees to avoid GUI/recursion."""
 
 import sys
 import types
