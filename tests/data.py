@@ -165,6 +165,119 @@ def make_zip(tmp_path: Path, name: str, files: dict[str, str | Path]) -> Path:
     return z
 
 
+# ── Programmatic GPX/.loc builders ───────────────────────────────────────────
+# The hand-written SAMPLE_* strings above are kept for realism (full Groundspeak
+# field coverage). For tests that only need a handful of caches with specific
+# ids/logs/coords, build them programmatically instead of pasting XML inline.
+
+def cache_wpt(
+    gc_code: str,
+    *,
+    name: str | None = None,
+    lat: float | str = 55.0,
+    lon: float | str = 12.0,
+    cache_type: str = "Traditional Cache",
+    gs_id: int | str = 1,
+    placed_by: str = "Tester",
+    container: str = "Small",
+    difficulty: float = 1.5,
+    terrain: float = 2.0,
+    archived: bool = False,
+    available: bool = True,
+    hint: str | None = None,
+    logs: list[dict] | None = None,
+    attributes: list[dict] | None = None,
+) -> str:
+    """Return a single Groundspeak ``<wpt>`` cache block (string).
+
+    ``logs`` items accept keys: id, type, finder, finder_id, date, text.
+    ``attributes`` items accept keys: id, inc, name.
+    Wrap one or more blocks with :func:`build_gpx` to get a full document.
+    """
+    name = name or gc_code
+    log_xml = "".join(
+        f'<groundspeak:log id="{lg.get("id", i + 1)}">'
+        f'<groundspeak:date>{lg.get("date", "2025-01-01T00:00:00Z")}</groundspeak:date>'
+        f'<groundspeak:type>{lg.get("type", "Found it")}</groundspeak:type>'
+        f'<groundspeak:finder id="{lg.get("finder_id", i + 1)}">{lg.get("finder", "Finder")}</groundspeak:finder>'
+        f'<groundspeak:text encoded="False">{lg.get("text", "log")}</groundspeak:text>'
+        "</groundspeak:log>"
+        for i, lg in enumerate(logs or [])
+    )
+    attr_xml = "".join(
+        f'<groundspeak:attribute id="{at.get("id", 1)}" inc="{at.get("inc", 1)}">'
+        f'{at.get("name", "")}</groundspeak:attribute>'
+        for at in (attributes or [])
+    )
+    hint_xml = (
+        f"<groundspeak:encoded_hints>{hint}</groundspeak:encoded_hints>" if hint else ""
+    )
+    return (
+        f'<wpt lat="{lat}" lon="{lon}">'
+        f"<n>{gc_code}</n>"
+        f"<urlname>{name}</urlname>"
+        f"<type>Geocache|{cache_type}</type>"
+        f'<groundspeak:cache id="{gs_id}" archived="{archived}" available="{available}" '
+        'xmlns:groundspeak="http://www.groundspeak.com/cache/1/0/1">'
+        f"<groundspeak:name>{name}</groundspeak:name>"
+        f"<groundspeak:placed_by>{placed_by}</groundspeak:placed_by>"
+        f"<groundspeak:type>{cache_type}</groundspeak:type>"
+        f"<groundspeak:container>{container}</groundspeak:container>"
+        f"<groundspeak:difficulty>{difficulty}</groundspeak:difficulty>"
+        f"<groundspeak:terrain>{terrain}</groundspeak:terrain>"
+        f"{hint_xml}"
+        f"<groundspeak:attributes>{attr_xml}</groundspeak:attributes>"
+        f"<groundspeak:logs>{log_xml}</groundspeak:logs>"
+        "</groundspeak:cache></wpt>"
+    )
+
+
+def build_gpx(*wpt_blocks: str, creator: str = "Groundspeak Pocket Query") -> str:
+    """Wrap one or more ``<wpt>`` blocks (from :func:`cache_wpt`) into a GPX doc."""
+    return (
+        '<?xml version="1.0" encoding="utf-8"?>'
+        f'<gpx version="1.0" creator="{creator}" '
+        'xmlns="http://www.topografix.com/GPX/1/0">'
+        f'{"".join(wpt_blocks)}</gpx>'
+    )
+
+
+def make_loc(waypoints: list[dict]) -> str:
+    """Build a minimal ``.loc`` XML string from a list of waypoint dicts.
+
+    Each dict accepts keys: gc_code, name (optional), lat, lon.
+    """
+    wpts = "".join(
+        "\n  <waypoint>"
+        f'\n    <name id="{wp["gc_code"]}">{wp.get("name", wp["gc_code"])}</name>'
+        f'\n    <coord lat="{wp["lat"]}" lon="{wp["lon"]}"/>'
+        "\n  </waypoint>"
+        for wp in waypoints
+    )
+    return f'<?xml version="1.0" encoding="UTF-8"?>\n<loc version="1.0">{wpts}\n</loc>'
+
+
+def seed_standard_caches(work_dir: Path) -> None:
+    """Import the standard sample cache set into the *active* database.
+
+    Requires :func:`opensak.db.database.init_db` to have already pointed the
+    engine at the target DB. Scratch GPX files are written under ``work_dir``.
+    Produces 4 caches — GC12345 (with a PK companion waypoint), GC99999, and the
+    GCAAA01/GCAAA02 variant — the exact set every e2e/monkey window relies on.
+    """
+    from opensak.db.database import get_session
+    from opensak.importer import import_gpx
+
+    gpx_file = write_gpx(work_dir, "sample.gpx", SAMPLE_GPX)
+    wpts_file = write_gpx(work_dir, "sample-wpts.gpx", SAMPLE_WPTS_GPX)
+    with get_session() as session:
+        import_gpx(gpx_file, session, wpts_path=wpts_file)
+
+    variant_file = write_gpx(work_dir, "variant.gpx", make_variant_gpx("GCAAA01", "GCAAA02"))
+    with get_session() as session:
+        import_gpx(variant_file, session)
+
+
 def make_fake_manager(db_path: Path, name: str = "E2ETest"):
     """Return a lightweight DatabaseManager stand-in for monkeypatching."""
     from opensak.db.manager import DatabaseInfo
