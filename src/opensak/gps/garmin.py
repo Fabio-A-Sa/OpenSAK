@@ -229,7 +229,7 @@ def _effective_coords(cache) -> tuple[float, float]:
     return cache.latitude, cache.longitude
 
 
-def generate_gpx(caches: list, filename: str = "opensak_export") -> str:
+def generate_gpx(caches: list, filename: str = "opensak_export", progress_cb=None) -> str:
     """
     Generer GPX 1.1 indhold fra en liste af Cache objekter.
     Returnerer GPX som en streng klar til at skrive til fil.
@@ -237,6 +237,8 @@ def generate_gpx(caches: list, filename: str = "opensak_export") -> str:
     Caches med korrigerede koordinater eksporteres med de korrigerede
     koordinater som waypoint-position. De originale koordinater bevares
     i en cmt (comment) feltom muligt.
+
+    progress_cb(done, total): valgfrit kald per cache, så GUI kan vise fremgang.
     """
     from xml.etree.ElementTree import Element, SubElement
     import xml.etree.ElementTree as ET
@@ -257,7 +259,10 @@ def generate_gpx(caches: list, filename: str = "opensak_export") -> str:
     time_el = SubElement(metadata, "time")
     time_el.text = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
-    for cache in caches:
+    total = len(caches)
+    for i, cache in enumerate(caches, 1):
+        if progress_cb:
+            progress_cb(i, total)
         if cache.latitude is None or cache.longitude is None:
             continue
 
@@ -392,7 +397,7 @@ def _indent(elem, level: int = 0) -> None:
 
 # ── LOC generator ─────────────────────────────────────────────────────────────
 
-def generate_loc(caches: list) -> str:
+def generate_loc(caches: list, progress_cb=None) -> str:
     """
     Generate LOC 1.0 XML content from a list of Cache objects.
     Returns the LOC content as a string ready to write to file.
@@ -400,6 +405,8 @@ def generate_loc(caches: list) -> str:
     LOC is a simple waypoint format supported by many GPS apps and devices.
     It includes GC code, name, coordinates, difficulty, terrain and container.
     Corrected coordinates are used when available.
+
+    progress_cb(done, total): optional per-cache callback for GUI progress.
     """
     from xml.etree.ElementTree import Element, SubElement
     import xml.etree.ElementTree as ET
@@ -408,7 +415,10 @@ def generate_loc(caches: list) -> str:
     root.set("version", "1.0")
     root.set("src", "OpenSAK")
 
-    for cache in caches:
+    total = len(caches)
+    for i, cache in enumerate(caches, 1):
+        if progress_cb:
+            progress_cb(i, total)
         if cache.latitude is None or cache.longitude is None:
             continue
 
@@ -473,7 +483,7 @@ def generate_loc(caches: list) -> str:
 
 # ── GGZ generator ─────────────────────────────────────────────────────────────
 
-def generate_ggz(caches: list, filename: str = "opensak_export") -> bytes:
+def generate_ggz(caches: list, filename: str = "opensak_export", progress_cb=None) -> bytes:
     """
     Generate a GGZ file (ZIP archive) from a list of Cache objects.
     Returns the GGZ content as bytes ready to write to file.
@@ -485,6 +495,9 @@ def generate_ggz(caches: list, filename: str = "opensak_export") -> bytes:
     The format allows Garmin devices to load more than the usual 10,000
     cache limit by using the GGZ container instead of plain GPX files.
     Corrected coordinates are used when available.
+
+    progress_cb(done, total): optional per-cache callback for GUI progress;
+    reported over the index-building pass (the slow part of GGZ).
     """
     import io
     import zipfile
@@ -523,7 +536,10 @@ def generate_ggz(caches: list, filename: str = "opensak_export") -> bytes:
     # Track byte offset into the GPX for each cache entry
     gpx_text = gpx_content.decode("utf-8")
 
-    for cache in caches:
+    total = len(caches)
+    for i, cache in enumerate(caches, 1):
+        if progress_cb:
+            progress_cb(i, total)
         if cache.latitude is None or cache.longitude is None:
             continue
 
@@ -723,6 +739,7 @@ def export_to_device(
     caches: list,
     device_root: Path,
     filename: str = "opensak",
+    progress_cb=None,
 ) -> ExportResult:
     """
     Eksportér caches til en Garmin GPS enhed.
@@ -735,7 +752,7 @@ def export_to_device(
         gpx_dir = get_garmin_gpx_path(device_root)
         gpx_dir.mkdir(parents=True, exist_ok=True)
 
-        gpx_content = generate_gpx(caches, filename)
+        gpx_content = generate_gpx(caches, filename, progress_cb=progress_cb)
 
         output_path = gpx_dir / f"{filename}.gpx"
         output_path.write_text(gpx_content, encoding="utf-8")
@@ -756,6 +773,7 @@ def export_to_device(
 def export_to_file(
     caches: list,
     output_path: Path,
+    progress_cb=None,
 ) -> ExportResult:
     """
     Eksportér caches til en GPX fil (valgfri placering).
@@ -765,7 +783,7 @@ def export_to_file(
 
     try:
         output_path.parent.mkdir(parents=True, exist_ok=True)
-        gpx_content = generate_gpx(caches, output_path.stem)
+        gpx_content = generate_gpx(caches, output_path.stem, progress_cb=progress_cb)
         output_path.write_text(gpx_content, encoding="utf-8")
         result.file_path   = output_path
         result.cache_count = len([c for c in caches if c.latitude is not None])

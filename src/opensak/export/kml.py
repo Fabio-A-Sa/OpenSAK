@@ -144,11 +144,14 @@ def export_kml(
     *,
     include_waypoints: bool = True,
     include_found: bool = True,
+    progress_cb=None,
 ) -> int:
     """
     Write a KML file to *output_path*.
 
     Returns the number of caches written.
+
+    progress_cb(done, total): optional per-cache callback for GUI progress.
     """
     cache_list = list(caches)
     if not include_found:
@@ -188,7 +191,10 @@ def export_kml(
 
     waypoints_to_export: list[tuple] = []  # (Waypoint, gc_code)
 
-    for cache in cache_list:
+    total = len(cache_list)
+    for i, cache in enumerate(cache_list, 1):
+        if progress_cb:
+            progress_cb(i, total)
         # Use corrected coordinates if available, fall back to originals
         note = cache.user_note
         if note and note.is_corrected and note.corrected_lat is not None:
