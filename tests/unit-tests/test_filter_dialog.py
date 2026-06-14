@@ -296,6 +296,12 @@ class TestWhereSql:
 # ── profiles ────────────────────────────────────────────────────────────────────
 
 class TestProfiles:
+    @pytest.fixture(autouse=True)
+    def _no_modal(self, monkeypatch):
+        # Never let a profile-combo signal pop a real (blocking) message box.
+        monkeypatch.setattr(fd.QMessageBox, "warning", MagicMock())
+        monkeypatch.setattr(fd.QMessageBox, "information", MagicMock())
+
     def test_save_profile(self, dlg, monkeypatch):
         monkeypatch.setattr(QInputDialog, "getText", lambda *a, **k: ("MyProfile", True))
         saved = {}
@@ -321,10 +327,14 @@ class TestProfiles:
         fs = FilterSet(mode="AND")
         fs.add(NameFilter("loaded"))
         prof = SimpleNamespace(filterset=fs)
+        # Patch load BEFORE touching the combo, and block the combo signal so
+        # setCurrentIndex can't re-enter _on_profile_selected with the real load.
+        monkeypatch.setattr(fd.FilterProfile, "load", classmethod(lambda cls, path: prof))
         p = tmp_path / "p.json"
+        dlg._profile_combo.blockSignals(True)
         dlg._profile_combo.addItem("P", p)
         dlg._profile_combo.setCurrentIndex(dlg._profile_combo.count() - 1)
-        monkeypatch.setattr(fd.FilterProfile, "load", classmethod(lambda cls, path: prof))
+        dlg._profile_combo.blockSignals(False)
         dlg._on_profile_selected(dlg._profile_combo.currentIndex())
         assert dlg._name_filter.text() == "loaded"
         assert dlg._del_btn.isEnabled() is True
@@ -332,8 +342,10 @@ class TestProfiles:
     def test_delete_profile(self, dlg, monkeypatch, tmp_path):
         p = tmp_path / "del.json"
         p.write_text("{}")
+        dlg._profile_combo.blockSignals(True)
         dlg._profile_combo.addItem("Del", p)
         dlg._profile_combo.setCurrentIndex(dlg._profile_combo.count() - 1)
+        dlg._profile_combo.blockSignals(False)
         monkeypatch.setattr(fd.QMessageBox, "question",
                             lambda *a, **k: fd.QMessageBox.StandardButton.Yes)
         dlg._delete_profile()
