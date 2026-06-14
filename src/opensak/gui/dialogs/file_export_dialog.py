@@ -38,21 +38,23 @@ class _ExportWorker(QThread):
     def run(self) -> None:
         try:
             from opensak.gps.garmin import generate_gpx, generate_loc, generate_ggz
+            from opensak.db.database import reload_caches_full
 
             self._output_path.parent.mkdir(parents=True, exist_ok=True)
+            caches = reload_caches_full(self._caches)
             cb = make_progress_cb(self.progress.emit)
 
             if self._fmt == "gpx":
-                content = generate_gpx(self._caches, self._output_path.stem, progress_cb=cb)
+                content = generate_gpx(caches, self._output_path.stem, progress_cb=cb)
                 self._output_path.write_text(content, encoding="utf-8")
             elif self._fmt == "loc":
-                content = generate_loc(self._caches, progress_cb=cb)
+                content = generate_loc(caches, progress_cb=cb)
                 self._output_path.write_text(content, encoding="utf-8")
             elif self._fmt == "ggz":
-                data = generate_ggz(self._caches, self._output_path.stem, progress_cb=cb)
+                data = generate_ggz(caches, self._output_path.stem, progress_cb=cb)
                 self._output_path.write_bytes(data)
 
-            count = len([c for c in self._caches if c.latitude is not None])
+            count = len([c for c in caches if c.latitude is not None])
             self.finished.emit(
                 tr("file_export_done_msg").format(
                     count=count, path=str(self._output_path)

@@ -45,8 +45,10 @@ class _ExportWorker(QThread):
 
     def run(self) -> None:
         try:
+            from ...db.database import reload_caches_full
+            caches = reload_caches_full(self._caches)
             count = export_kml(
-                self._caches,
+                caches,
                 self._output_path,
                 include_waypoints=self._include_waypoints,
                 include_found=self._include_found,

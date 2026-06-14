@@ -56,7 +56,9 @@ class ExportWorker(QThread):
     def run(self) -> None:
         try:
             from opensak.gps.garmin import export_to_device, export_to_file
+            from opensak.db.database import reload_caches_full
             caches = self.caches[:self.max_caches] if self.max_caches > 0 else self.caches
+            caches = reload_caches_full(caches)
             cb = make_progress_cb(self.progress.emit)
 
             if self.device_path.is_dir() and (self.device_path / "Garmin").exists():
