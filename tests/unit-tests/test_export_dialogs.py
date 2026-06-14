@@ -148,6 +148,13 @@ class TestKmlExportDialog:
         assert dlg._progress.value() == 2
         assert dlg._progress.isTextVisible() is True
 
+    def test_on_progress_ignores_zero_total(self, qtbot):
+        dlg = KmlExportDialog([])
+        qtbot.addWidget(dlg)
+        dlg._reset_progress()
+        dlg._on_progress(0, 0)
+        assert dlg._progress.maximum() == 0
+
     def test_on_finished_accepts(self, qtbot, monkeypatch):
         dlg = KmlExportDialog([])
         qtbot.addWidget(dlg)
@@ -249,6 +256,13 @@ class TestFileExportDialog:
         assert dlg._progress.maximum() == 4
         assert dlg._progress.value() == 4
         assert dlg._progress.isTextVisible() is True
+
+    def test_on_progress_ignores_zero_total(self, qtbot):
+        dlg = FileExportDialog([_cache()])
+        qtbot.addWidget(dlg)
+        dlg._reset_progress()
+        dlg._on_progress(0, 0)
+        assert dlg._progress.maximum() == 0
 
     def test_on_success_shows_message(self, qtbot):
         dlg = FileExportDialog([_cache()])
