@@ -14,6 +14,7 @@ from opensak.db.database import (
     make_session,
     dispose_engine,
     db_health_check,
+    reload_caches_full,
 )
 from opensak.db.models import Cache, Waypoint, Log, Attribute, Trackable, UserNote
 
@@ -308,3 +309,48 @@ class TestInitDbDefaultPath:
         monkeypatch.setattr("opensak.config.get_db_path", lambda: path)
         init_db()
         assert "fallback.db" in str(get_engine().url)
+
+
+# ── reload_caches_full ──────────────────────────────────────────────────────────
+
+class TestReloadCachesFull:
+    def test_passes_through_non_cache_objects(self, tmp_db):
+        fakes = [SimpleNamespace(id=1), SimpleNamespace(id=2)]
+        assert reload_caches_full(fakes) == fakes  # no DB query, returned as-is
+
+    def test_empty_input(self, tmp_db):
+        assert reload_caches_full([]) == []
+
+    def test_reloads_deferred_blob_and_noloaded_logs(self, tmp_path):
+        from sqlalchemy.orm import defer, noload
+        from sqlalchemy.orm.exc import DetachedInstanceError
+
+        init_db(db_path=tmp_path / "reload.db")
+        with get_session() as s:
+            cache = Cache(
+                gc_code="GCRELOAD", name="Reload me", cache_type="Traditional Cache",
+                latitude=55.0, longitude=12.0, encoded_hints="Behind the sign.",
+            )
+            cache.logs.append(Log(log_type="Found it", finder="T", text="Nice one"))
+            s.add(cache)
+
+        # Load it the way the table does: deferred blob + noload'ed logs, detached.
+        with get_session() as s:
+            partial = (
+                s.query(Cache)
+                .options(defer(Cache.encoded_hints), noload(Cache.logs))
+                .filter_by(gc_code="GCRELOAD")
+                .one()
+            )
+        with pytest.raises(DetachedInstanceError):
+            _ = partial.encoded_hints
+
+        [full] = reload_caches_full([partial])
+        assert full.encoded_hints == "Behind the sign."
+        assert [lg.text for lg in full.logs] == ["Nice one"]
+
+    def test_missing_row_falls_back_to_original(self, tmp_path):
+        init_db(db_path=tmp_path / "missing.db")
+        ghost = Cache(gc_code="GCGONE", name="Not saved")
+        ghost.id = 424242  # an id with no matching row
+        assert reload_caches_full([ghost]) == [ghost]

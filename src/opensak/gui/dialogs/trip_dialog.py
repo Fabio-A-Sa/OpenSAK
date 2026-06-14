@@ -266,7 +266,9 @@ class _PreviewMixin:
         if not path:
             return
         try:
-            result = export_to_file(self._selected_caches, Path(path))
+            from opensak.db.database import reload_caches_full
+            caches = reload_caches_full(self._selected_caches)
+            result = export_to_file(caches, Path(path))
             QMessageBox.information(
                 self, tr("trip_export_done_title"), str(result)
             )

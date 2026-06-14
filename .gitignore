@@ -35,6 +35,12 @@ Thumbs.db
 *.db
 *.log
 
+# Local export output (GPX/LOC/GGZ/KML written during manual testing)
+*.gpx
+*.loc
+*.ggz
+*.kml
+
 # OAuth tokens
 gc_token.json
 

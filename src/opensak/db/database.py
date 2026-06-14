@@ -465,6 +465,48 @@ def make_session():
     return _SessionLocal()
 
 
+def reload_caches_full(caches: list) -> list:
+    """Reload *caches* with everything an export needs eagerly loaded.
+
+    Table-model caches come from apply_filters(), which defers the text blobs
+    (hints/descriptions) and noloads logs/waypoints for speed. Once their
+    session closes they are detached, so an export worker that reads those
+    attributes raises DetachedInstanceError. Reloading here returns fully
+    populated, detached-safe objects (logs, waypoints, attributes, user_note
+    and the text blobs) in the original order.
+
+    Objects without a matching DB row (e.g. test stand-ins) pass through
+    unchanged.
+    """
+    from opensak.db.models import Cache
+    from sqlalchemy.orm import joinedload, selectinload, undefer
+
+    # Only persisted Cache rows can be reloaded; pass anything else through
+    # (e.g. SimpleNamespace stand-ins in tests).
+    ids = [c.id for c in caches if isinstance(c, Cache) and c.id is not None]
+    if not ids:
+        return list(caches)
+
+    with get_session() as session:
+        rows = (
+            session.query(Cache)
+            .options(
+                selectinload(Cache.logs),
+                selectinload(Cache.waypoints),
+                selectinload(Cache.attributes),
+                joinedload(Cache.user_note),
+                undefer(Cache.short_description),
+                undefer(Cache.long_description),
+                undefer(Cache.encoded_hints),
+            )
+            .filter(Cache.id.in_(ids))
+            .all()
+        )
+
+    by_id = {c.id: c for c in rows}
+    return [by_id.get(c.id, c) if isinstance(c, Cache) else c for c in caches]
+
+
 # ── Health-check helper ───────────────────────────────────────────────────────
 
 def db_health_check() -> dict:

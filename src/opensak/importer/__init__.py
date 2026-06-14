@@ -156,32 +156,39 @@ def _parse_wpt(wpt_el) -> Optional[dict]:
     except (TypeError, ValueError):
         return None
 
-    # GC code: <n> in newer PQ files, <n> in older format
+    # Use the file's actual GPX namespace (1/0 for Pocket Queries, 1/1 for
+    # OpenSAK's own export and many third-party tools) so the gpx: lookups match.
+    gpx_ns = {"gpx": etree.QName(wpt_el).namespace or NS["gpx"]}
+
+    # GC code: <name> in newer PQ files, <n> in older format
     gc_code = (
-        _text(wpt_el, "gpx:name", NS) or
-        _text(wpt_el, "gpx:n", NS)
+        _text(wpt_el, "gpx:name", gpx_ns) or
+        _text(wpt_el, "gpx:n", gpx_ns)
     )
     # Accept GC codes (standard caches) and LC codes (Adventure Lab / lab2gpx)
     if not gc_code or not (gc_code.startswith("GC") or gc_code.startswith("LC")):
         return None
 
     # Cache type from <type>Geocache|Traditional Cache</type>
-    type_raw = _text(wpt_el, "gpx:type", NS) or ""
+    type_raw = _text(wpt_el, "gpx:type", gpx_ns) or ""
     cache_type_full = type_raw.split("|")[-1].strip() if "|" in type_raw else type_raw
 
-    hidden_raw = _text(wpt_el, "gpx:time", NS)
+    hidden_raw = _text(wpt_el, "gpx:time", gpx_ns)
 
     # ── Found by me — detekteret via <sym>Geocache Found</sym> ───────────────
     # Groundspeak sætter sym til "Geocache Found" for caches fundet af PQ-ejeren.
-    sym = _text(wpt_el, "gpx:sym", NS) or ""
+    sym = _text(wpt_el, "gpx:sym", gpx_ns) or ""
     found_by_me = sym.strip().lower() == "geocache found"
 
     # ── Groundspeak extension block ───────────────────────────────────────────
     # Detect which Groundspeak namespace this file actually uses (/1/0 or /1/0/1)
+    # groundspeak:cache sits directly under <wpt> in GPX 1.0 Pocket Queries but
+    # inside an <extensions> wrapper in GPX 1.1 (incl. OpenSAK's own export), so
+    # search descendants rather than only direct children.
     gs_cache = None
     active_ns = NS  # default
     for gs_uri in _GS_NAMESPACES:
-        gs_cache = wpt_el.find(f"{{{gs_uri}}}cache")
+        gs_cache = wpt_el.find(f".//{{{gs_uri}}}cache")
         if gs_cache is not None:
             active_ns = _make_ns(gs_uri)
             break
@@ -190,7 +197,7 @@ def _parse_wpt(wpt_el) -> Optional[dict]:
     available    = _bool_attr(gs_cache, "@available")    if gs_cache is not None else True
     archived     = _bool_attr(gs_cache, "@archived")     if gs_cache is not None else False
 
-    name         = _text(gs_cache, "gs:name",              active_ns) or _text(wpt_el, "gpx:urlname", NS) or gc_code
+    name         = _text(gs_cache, "gs:name",              active_ns) or _text(wpt_el, "gpx:urlname", gpx_ns) or gc_code
     placed_by    = _text(gs_cache, "gs:placed_by",         active_ns)
     owner        = _text(gs_cache, "gs:owner",             active_ns)
     owner_id     = gs_cache.find("gs:owner", active_ns).get("id") if gs_cache is not None and gs_cache.find("gs:owner", active_ns) is not None else None
@@ -379,9 +386,11 @@ def _parse_extra_wpt(wpt_el) -> Optional[dict]:
     except (TypeError, ValueError):
         return None
 
+    gpx_ns = {"gpx": etree.QName(wpt_el).namespace or NS["gpx"]}
+
     raw_name = (
-        _text(wpt_el, "gpx:name", NS) or
-        _text(wpt_el, "gpx:n",    NS) or ""
+        _text(wpt_el, "gpx:name", gpx_ns) or
+        _text(wpt_el, "gpx:n",    gpx_ns) or ""
     )
     if len(raw_name) < 2:
         return None
@@ -415,7 +424,7 @@ def _parse_extra_wpt(wpt_el) -> Optional[dict]:
         # Ukendt prefix-format — tjek om type-feltet angiver et gyldigt waypoint-type
         # Eksempler: 'JJ28J63' type='Waypoint|Final Location'
         # Suffix er altid de sidste 6 tegn (Groundspeak standard)
-        type_raw_check = _text(wpt_el, "gpx:type", NS) or ""
+        type_raw_check = _text(wpt_el, "gpx:type", gpx_ns) or ""
         if "|" in type_raw_check and type_raw_check.startswith("Waypoint"):
             # Acceptér som waypoint med generisk prefix
             prefix = raw_name[:2].upper()
@@ -424,7 +433,7 @@ def _parse_extra_wpt(wpt_el) -> Optional[dict]:
         else:
             return None
 
-    type_raw = _text(wpt_el, "gpx:type", NS) or ""
+    type_raw = _text(wpt_el, "gpx:type", gpx_ns) or ""
     if "|" in type_raw:
         wp_type = type_raw.split("|")[-1].strip()
     elif type_raw:
@@ -432,9 +441,9 @@ def _parse_extra_wpt(wpt_el) -> Optional[dict]:
     else:
         wp_type = wp_type_fallback
 
-    desc    = _text(wpt_el, "gpx:desc",    NS)
-    comment = _text(wpt_el, "gpx:cmt",     NS)
-    name    = _text(wpt_el, "gpx:urlname", NS) or desc or raw_name
+    desc    = _text(wpt_el, "gpx:desc",    gpx_ns)
+    comment = _text(wpt_el, "gpx:cmt",     gpx_ns)
+    name    = _text(wpt_el, "gpx:urlname", gpx_ns) or desc or raw_name
 
     return {
         "prefix":      prefix,
