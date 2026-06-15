@@ -511,6 +511,8 @@ STRINGS: dict[str, str] = {
     "col_found_date":        "Datum gevonden",
     "col_first_to_find":     "FTF",
     "col_user_flag":         "👤",
+    "col_user_flag_label":   "👤 Gebruikersvlag",
+    "col_user_flag_header_tooltip": "Gebruikersvlag — klik om te wisselen",
     "search_gc_label":       "GC-code",
     "col_bearing":           "Richting",
     "bearing_dirs":          "N NO O ZO Z ZW W NW",
@@ -610,6 +612,8 @@ STRINGS: dict[str, str] = {
     "detail_corrected_add_btn":     "Gecorrigeerde coördinaten toevoegen…",
 
     "col_corrected":                "📍",
+    "col_corrected_label":          "📍 Gecorrigeerde coördinaten",
+    "col_corrected_header_tooltip": "Gecorrigeerde coördinaten — dubbelklik om te bewerken",
     "col_corrected_tooltip":        "Gecorrigeerde coördinaten: {coords}",
 
     "ctx_add_corrected":            "📍  Gecorrigeerde coördinaten toevoegen…",

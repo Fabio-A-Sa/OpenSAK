@@ -509,6 +509,8 @@ STRINGS: dict[str, str] = {
     "col_found_date":       "Hittad datum",
     "col_first_to_find":     "FTF",
     "col_user_flag":         "👤",
+    "col_user_flag_label":   "👤 Användarflagga",
+    "col_user_flag_header_tooltip": "Användarflagga — klicka för att växla",
     "search_gc_label":       "GC-kod",
     "col_bearing":           "Riktning",
     "bearing_dirs":          "N NÖ Ö SÖ S SV V NV",
@@ -608,6 +610,8 @@ STRINGS: dict[str, str] = {
     "detail_corrected_add_btn":     "Lägg till korrigerade koordinater…",
 
     "col_corrected":                "📍",
+    "col_corrected_label":          "📍 Korrigerade koordinater",
+    "col_corrected_header_tooltip": "Korrigerade koordinater — dubbelklicka för att redigera",
     "col_corrected_tooltip":        "Korrigerade koordinater: {coords}",
 
     "ctx_add_corrected":            "📍  Ange korrigerade koordinater…",

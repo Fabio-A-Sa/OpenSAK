@@ -511,6 +511,12 @@ class CacheTableModel(QAbstractTableModel):
             if role == Qt.ItemDataRole.DisplayRole:
                 col_id = self._columns[section]
                 return get_column_defs().get(col_id, (col_id, 80))[0]
+            if role == Qt.ItemDataRole.ToolTipRole:
+                col_id = self._columns[section]
+                if col_id == "corrected":
+                    return tr("col_corrected_header_tooltip")
+                if col_id == "user_flag":
+                    return tr("col_user_flag_header_tooltip")
             if role == Qt.ItemDataRole.TextAlignmentRole:
                 return Qt.AlignmentFlag.AlignCenter
         return None

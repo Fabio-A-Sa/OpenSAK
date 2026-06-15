@@ -509,6 +509,8 @@ STRINGS: dict[str, str] = {
     "col_found_date":       "Date trouvée",
     "col_first_to_find":     "FTF",
     "col_user_flag":         "👤",
+    "col_user_flag_label":   "👤 Drapeau utilisateur",
+    "col_user_flag_header_tooltip": "Drapeau utilisateur — cliquez pour activer/désactiver",
     "search_gc_label":       "Code GC",
     "col_bearing":           "Direction",
     "bearing_dirs":          "N NE E SE S SO O NO",
@@ -608,6 +610,8 @@ STRINGS: dict[str, str] = {
     "detail_corrected_add_btn":     "Ajouter des coordonnées corrigées…",
 
     "col_corrected":                "📍",
+    "col_corrected_label":          "📍 Coordonnées corrigées",
+    "col_corrected_header_tooltip": "Coordonnées corrigées — double-cliquez pour modifier",
     "col_corrected_tooltip":        "Coordonnées corrigées : {coords}",
 
     "ctx_add_corrected":            "📍  Ajouter des coordonnées corrigées…",

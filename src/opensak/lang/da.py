@@ -509,6 +509,8 @@ STRINGS: dict[str, str] = {
     "col_found_date":       "Fundet dato",
     "col_first_to_find":     "FTF",
     "col_user_flag":         "👤",
+    "col_user_flag_label":   "👤 Brugerflag",
+    "col_user_flag_header_tooltip": "Brugerflag — klik for at skifte",
     "search_gc_label":       "GC kode",
     "col_bearing":           "Retning",
     "bearing_dirs":          "N NØ Ø SØ S SV V NV",
@@ -608,6 +610,8 @@ STRINGS: dict[str, str] = {
     "detail_corrected_add_btn":     "Tilføj korrigerede koordinater…",
 
     "col_corrected":                "📍",
+    "col_corrected_label":          "📍 Korrigerede koordinater",
+    "col_corrected_header_tooltip": "Korrigerede koordinater — dobbeltklik for at redigere",
     "col_corrected_tooltip":        "Korrigerede koordinater: {coords}",
 
     "ctx_add_corrected":            "📍  Tilføj korrigerede koordinater…",

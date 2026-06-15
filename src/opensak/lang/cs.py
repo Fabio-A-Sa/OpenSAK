@@ -510,6 +510,8 @@ STRINGS: dict[str, str] = {
     "col_found_date":       "Datum nálezu",
     "col_first_to_find":     "FTF",
     "col_user_flag":         "👤",
+    "col_user_flag_label":   "👤 Uživatelský příznak",
+    "col_user_flag_header_tooltip": "Uživatelský příznak — klikněte pro přepnutí",
     "search_gc_label":       "GC kód",
     "col_bearing":           "Směr",
     "bearing_dirs":          "S SV V JV J JZ Z SZ",
@@ -609,6 +611,8 @@ STRINGS: dict[str, str] = {
     "detail_corrected_add_btn":     "Přidat opravené souřadnice…",
 
     "col_corrected":                "📍",
+    "col_corrected_label":          "📍 Opravené souřadnice",
+    "col_corrected_header_tooltip": "Opravené souřadnice — poklepejte pro úpravu",
     "col_corrected_tooltip":        "Opravené souřadnice: {coords}",
 
     "ctx_add_corrected":            "📍  Přidat opravené souřadnice…",

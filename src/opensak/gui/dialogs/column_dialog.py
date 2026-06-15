@@ -17,7 +17,9 @@ from opensak.lang import tr
 # Kolonnestruktur: (felt_id, tr_nøgle, bredde, standard_synlig)
 _ALL_COLUMNS_DEF = [
     # Standard synlige kolonner — i GSAK-rækkefølge
-    ("user_flag",    "col_user_flag",    30,  True),
+    # col_user_flag og col_corrected viser kun ikon i kolonneoverskriften,
+    # men i Column Chooser bruges _label-varianten med læsbar tekst.
+    ("user_flag",    "col_user_flag_label",    30,  True),
     ("gc_code",      "col_gc_code",      80,  True),
     ("name",         "col_name",        260,  True),
     ("cache_type",   "col_type",          28,  True),   # ikon + tooltip, ingen tekst
@@ -28,7 +30,7 @@ _ALL_COLUMNS_DEF = [
     ("bearing",      "col_bearing",      70,  True),
     ("found",        "col_found",        36,  True),
     ("favorite",     "col_favorite",     36,  True),
-    ("corrected",    "col_corrected",    36,  True),
+    ("corrected",    "col_corrected_label",    36,  True),
     # Ekstra kolonner (fra)
     ("country",      "col_country",      80, False),
     ("state",        "col_state",       120, False),
