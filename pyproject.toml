@@ -38,10 +38,9 @@ markers = [
     "gui: tests that require a display and pytest-qt",
 ]
 
-# Whole package is type-checked except gui/, which is tracked separately.
+# The whole package is type-checked, gui/ included.
 [tool.mypy]
 files = ["src/opensak"]
-exclude = ["src/opensak/gui/"]
 mypy_path = "src"
 explicit_package_bases = true
 namespace_packages = true
