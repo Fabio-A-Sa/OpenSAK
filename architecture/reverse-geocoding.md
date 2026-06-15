@@ -225,35 +225,35 @@ The `counties/` directory **is the cache**: a country's pack is downloaded once 
 ```mermaid
 flowchart TD
     subgraph UI["GUI thread"]
-        DLG["Update Location dialog\n(scope: all / missing / this cache / filter)\n(coords: posted | corrected)"]
-        IMP["GPX/PQ import\n(auto-fill on import)"]
+        DLG["Update Location dialog<br/>(scope: all / missing / this cache / filter)<br/>(coords: posted | corrected)"]
+        IMP["GPX/PQ import<br/>(auto-fill on import)"]
     end
 
     subgraph WORKER["QThread — reverse-geocode worker"]
-        BATCH["batch resolve(coords[])"]
+        BATCH["batch resolve(coords)"]
     end
 
     subgraph ENGINE["geo.boundaries.TerritoryResolver"]
-        S1["Stage 1: per-layer R-Tree query\n(boundaries.db)"]
-        S2["Stage 2: point-in-polygon\n(only on overlaps)"]
-        POLY["Polygon cache\n(lazy-loaded GeoJSON)"]
+        S1["Stage 1: per-layer R-Tree query<br/>(boundaries.db)"]
+        S2["Stage 2: point-in-polygon<br/>(only on overlaps)"]
+        POLY["Polygon cache<br/>(lazy-loaded GeoJSON)"]
     end
 
     subgraph STORE["geo.store + geo.packs"]
-        BB[("boundaries.db\nrtree_country/state/county")]
-        GJ[["GeoJSON packs\n(local cache)"]]
-        DL["on-demand pack fetch\nGitHub Releases + version check"]
+        BB[("boundaries.db<br/>rtree_country / state / county")]
+        GJ[["GeoJSON packs<br/>(local cache)"]]
+        DL["on-demand pack fetch<br/>GitHub Releases + version check"]
     end
 
-    DB[("Cache DB\ncountry/state/county + metadata")]
+    DB[("Cache DB<br/>country / state / county + metadata")]
 
-    DLG --> WORKER
-    IMP --> WORKER
+    DLG --> BATCH
+    IMP --> BATCH
     BATCH --> S1
     S1 -->|1 hit| RESULT["GeoLocation"]
-    S1 -->|>1 hit| S2
+    S1 -->|2+ hits| S2
     S2 --> POLY
-    POLY -.cache miss.-> DL
+    POLY -. cache miss .-> DL
     S2 --> RESULT
     S1 --- BB
     POLY --- GJ
@@ -295,14 +295,14 @@ A maintainer-run pipeline lives under `tools/` (kept out of the runtime package 
 
 ```mermaid
 flowchart LR
-    A["raw polygon files\n(native text, mixed encodings)"] --> B["normalise\nUTF-8, fix diacritics,\nconsistent keys"]
-    OSM["OSM / Natural Earth / GADM\n(refresh stale polygons)"] --> B
-    B --> X["convert to GeoJSON\n(1 FeatureCollection / country)"]
-    X --> C["validate geometry\n(rings, winding, holes)"]
+    A["raw polygon files<br/>(native text, mixed encodings)"] --> B["normalise<br/>UTF-8, fix diacritics,<br/>consistent keys"]
+    OSM["OSM / Natural Earth / GADM<br/>(refresh stale polygons)"] --> B
+    B --> X["convert to GeoJSON<br/>(1 FeatureCollection / country)"]
+    X --> C["validate geometry<br/>(rings, winding, holes)"]
     C --> D["read bbox per feature"]
-    D --> E["generate boundaries.db\n(per-layer R-Trees + metadata)"]
-    C --> F["group counties per country\n+ assemble baseline"]
-    E --> G["manifest.json\n(versions)"]
+    D --> E["generate boundaries.db<br/>(per-layer R-Trees + metadata)"]
+    C --> F["group counties per country<br/>+ assemble baseline"]
+    E --> G["manifest.json<br/>(versions)"]
     F --> G
     G --> H["publish to GitHub Releases"]
 ```
@@ -334,17 +334,11 @@ Boundaries move and names change, so **both** artefacts are versioned and refres
 
 ```mermaid
 flowchart TD
-    L["app launch / manual check\n(throttled, e.g. weekly)"] --> M["fetch manifest.json\nfrom latest data release"]
-    M --> C{"dataset version\nnewer?"}
+    L["app launch / manual check<br/>(throttled, ~weekly)"] --> M["fetch manifest.json<br/>(latest data release)"]
+    M --> C{"dataset<br/>newer?"}
     C -->|no| DONE["nothing to do"]
-    C -->|yes| I{"boundaries.db\nversion changed?"}
-    I -->|yes| DLI["download new boundaries.db\nto temp, then atomic swap"]
-    I -->|no| P
-    DLI --> P{"any cached pack\nout of date?"}
-    P -->|yes| DLP["re-download only the\ncached packs that changed"]
-    P -->|no| DONE2["up to date"]
-    DLP --> STALE
-    DLI --> STALE["mark affected caches' location_dataset\nas stale (do not silently rewrite)"]
+    C -->|yes| DLD["download only the changed files<br/>boundaries.db + out-of-date cached packs<br/>(temp, then atomic swap)"]
+    DLD --> STALE["flag affected caches' location_dataset as stale<br/>(no silent rewrite)"]
     STALE --> PROMPT["offer 'Update Location' re-run"]
 ```
 
