@@ -299,6 +299,9 @@ STRINGS: dict[str, str] = {
     "settings_update_check_label":   "Beim Start automatisch nach neuen Versionen suchen",
     "update_uptodate_title":        "Kein Update gefunden",
     "update_uptodate_msg":          "Sie verwenden die neueste Version von OpenSAK.",
+
+    "beta_update_available_title": "Neue Beta-Version verfügbar",
+    "beta_update_available_msg": "OpenSAK Beta {latest} ist verfügbar — Sie verwenden {current}.",
     "about_text":
         "<h3>OpenSAK {version}</h3>"
         "<p>Ein Open Source Geocaching Management Tool "

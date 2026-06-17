@@ -8,6 +8,53 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.14.0-beta.1] — 2026-06-17
+
+> **Beta release** — testing the new 1.14.0 settings/database architecture before
+> it becomes the stable release. Please report any issues found while testing.
+
+### Added
+
+- **JSON-based settings store** (closes #209) — replaces QSettings and the old
+  `preferences.json` with a single `opensak.json` file in the install directory.
+  A small `bootstrap.json` on the platform-standard config path points to the
+  install directory. Existing installations are migrated automatically and
+  transparently on first launch of this version.
+
+- **Welcome wizard for first-run setup** (closes #210) — new installations now
+  walk through a 5-step wizard: language, installation folder (settings/logs),
+  database folder, optional Geocaching.com profile, and a final confirmation
+  screen. Existing installations skip the wizard automatically.
+
+- **Per-database column views with drag-to-reorder** (closes #199) — visible
+  columns and their widths are now remembered separately for each database.
+  Column headers can be dragged to reorder them, and the new order is saved
+  and restored automatically, including across restarts.
+
+- **Debug logging system** (closes #232) — a lightweight, always-on logging
+  system writes to `opensak.log` in the install directory. The log resets on
+  every startup and rotates at 1 MB. Per-module debug flags (currently only
+  the update checker) can be toggled in `debug_flags.py` without touching the
+  calling code. "Open log file" was added to the Help menu so the file is easy
+  to find and attach when reporting issues.
+
+### Fixed
+
+- **Boolean settings could silently corrupt to base64 strings** — a bug in the
+  new JSON settings store caused `True`/`False` values (e.g. "automatically
+  check for updates") to occasionally be written as base64-encoded byte
+  strings instead of real booleans, because `bool` is an `int` subclass and
+  was caught by a `bytes()` coercion meant only for Qt's `QByteArray`. Existing
+  corrupted values are repaired automatically on startup.
+
+- **Update checker mishandled pre-release version tags** — `_parse_version`
+  previously fell back to a sentinel value for any tag with a `-beta.N` /
+  `-alpha.N` / `-rc.N` suffix, which would have made this very beta appear
+  older than any released version. Pre-release tags now compare correctly
+  against both stable releases and other pre-releases of the same version.
+
+---
+
 ## [1.13.12] — 2026-06-15
 
 ### Added

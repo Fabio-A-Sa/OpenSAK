@@ -1781,7 +1781,9 @@ class MainWindow(QMainWindow):
         from opensak import __version__
         self._manual_update_worker = UpdateCheckWorker(__version__, parent=self)
         self._manual_update_worker.update_available.connect(
-            lambda tag, url: self._on_update_available(tag, url, manual=True)
+            lambda tag, url, is_prerelease: self._on_update_available(
+                tag, url, is_prerelease, manual=True
+            )
         )
         self._manual_update_worker.check_done.connect(
             self._on_manual_check_done
@@ -1799,9 +1801,9 @@ class MainWindow(QMainWindow):
             )
 
     def _on_update_available(
-        self, latest_tag: str, url: str, *, manual: bool = False
+        self, latest_tag: str, url: str, is_prerelease: bool = False, *, manual: bool = False
     ) -> None:
-        """Vis notifikationsdialog om ny version."""
+        """Vis notifikationsdialog om ny version (stabil eller beta)."""
         self._manual_found_update = True
 
         # Ved automatisk tjek: ignorer versioner brugeren har valgt at springe over
@@ -1814,8 +1816,12 @@ class MainWindow(QMainWindow):
         changelog_url = "https://github.com/AgreeDK/opensak/blob/main/CHANGELOG.md"
 
         msg = QMessageBox(self)
-        msg.setWindowTitle(tr("update_available_title"))
-        msg.setText(tr("update_available_msg", latest=latest_tag, current=__version__))
+        if is_prerelease:
+            msg.setWindowTitle(tr("beta_update_available_title"))
+            msg.setText(tr("beta_update_available_msg", latest=latest_tag, current=__version__))
+        else:
+            msg.setWindowTitle(tr("update_available_title"))
+            msg.setText(tr("update_available_msg", latest=latest_tag, current=__version__))
         msg.setInformativeText(
             tr("update_available_info")
             + f'  <a href="{changelog_url}">{tr("update_changelog")}</a>'
