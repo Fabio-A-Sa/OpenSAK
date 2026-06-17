@@ -8,6 +8,20 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.14.0-beta.2] — 2026-06-17
+
+> **Beta release** — continuing the 1.14.0 testing period.
+
+### Added
+
+- **Beta-aware update notifications** — users running a beta version are now
+  checked against the full GitHub releases list to find a newer beta, and see
+  a distinct "new beta version available" message instead of the normal
+  update prompt. Users running a stable (main) release are unaffected and
+  continue to only ever be offered stable updates, as before.
+
+---
+
 ## [1.14.0-beta.1] — 2026-06-17
 
 > **Beta release** — testing the new 1.14.0 settings/database architecture before
