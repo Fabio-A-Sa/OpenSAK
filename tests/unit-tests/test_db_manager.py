@@ -241,6 +241,113 @@ class TestCopyDatabase:
             manager.copy_database(src_info, "CopySrc")
 
 
+# ── move_databases_to ──────────────────────────────────────────────────────────
+
+class TestMoveDatabasesTo:
+    def test_keep_originals_copies_and_preserves_source(self, manager, tmp_path):
+        new_dir = tmp_path / "new_location"
+        old_path = manager.active.path
+        old_path.write_text("db content")
+
+        with patch("opensak.db.database.dispose_engine"):
+            errors = manager.move_databases_to(new_dir, delete_originals=False)
+
+        assert errors == []
+        assert (new_dir / old_path.name).exists()
+        assert old_path.exists()
+        assert manager.active.path == new_dir / old_path.name
+
+    def test_delete_originals_removes_source_file(self, manager, tmp_path):
+        new_dir = tmp_path / "new_location"
+        old_path = manager.active.path
+        old_path.write_text("db content")
+
+        with patch("opensak.db.database.dispose_engine"):
+            errors = manager.move_databases_to(new_dir, delete_originals=True)
+
+        assert errors == []
+        assert (new_dir / old_path.name).exists()
+        assert not old_path.exists()
+
+    def test_moves_sidecar_wal_and_shm_files(self, manager, tmp_path):
+        new_dir = tmp_path / "new_location"
+        old_path = manager.active.path
+        old_path.write_text("db content")
+        wal = Path(str(old_path) + "-wal")
+        shm = Path(str(old_path) + "-shm")
+        wal.write_text("wal")
+        shm.write_text("shm")
+
+        with patch("opensak.db.database.dispose_engine"):
+            errors = manager.move_databases_to(new_dir, delete_originals=True)
+
+        assert errors == []
+        assert (new_dir / wal.name).exists()
+        assert (new_dir / shm.name).exists()
+        assert not wal.exists()
+        assert not shm.exists()
+
+    def test_skips_database_already_in_target_dir(self, manager, tmp_path):
+        target = manager.active.path.parent
+        with patch("opensak.db.database.dispose_engine"):
+            errors = manager.move_databases_to(target, delete_originals=False)
+        assert errors == []
+        # Path unchanged — no-op for databases already in the destination.
+        assert manager.active.path.parent == target
+
+    def test_collision_with_existing_file_reports_error_and_skips(self, manager, tmp_path):
+        new_dir = tmp_path / "new_location"
+        new_dir.mkdir()
+        old_path = manager.active.path
+        old_path.write_text("real db")
+        (new_dir / old_path.name).write_text("unrelated existing file")
+
+        with patch("opensak.db.database.dispose_engine"):
+            errors = manager.move_databases_to(new_dir, delete_originals=True)
+
+        assert len(errors) == 1
+        # Original must survive untouched — the move was aborted for this file.
+        assert old_path.exists()
+        assert old_path.read_text() == "real db"
+        assert manager.active.path == old_path
+        # The unrelated existing file at the destination must not be overwritten.
+        assert (new_dir / old_path.name).read_text() == "unrelated existing file"
+
+    def test_moves_multiple_databases(self, manager, tmp_path):
+        new_dir = tmp_path / "new_location"
+        with patch("opensak.db.database.init_db"):
+            second = manager.new_database("Second", tmp_path / "Second.db")
+        manager.active.path.write_text("db1")
+        second.path.write_text("db2")
+
+        with patch("opensak.db.database.dispose_engine"):
+            errors = manager.move_databases_to(new_dir, delete_originals=False)
+
+        assert errors == []
+        assert all((new_dir / db.path.name).exists() for db in manager.databases)
+
+    def test_creates_target_directory_if_missing(self, manager, tmp_path):
+        new_dir = tmp_path / "does_not_exist_yet"
+        assert not new_dir.exists()
+        manager.active.path.write_text("db content")
+
+        with patch("opensak.db.database.dispose_engine"):
+            manager.move_databases_to(new_dir, delete_originals=False)
+
+        assert new_dir.exists()
+
+    def test_persists_updated_paths_to_settings(self, manager, tmp_path):
+        new_dir = tmp_path / "new_location"
+        manager.active.path.write_text("db content")
+
+        with patch("opensak.db.database.dispose_engine"):
+            manager.move_databases_to(new_dir, delete_originals=False)
+
+        from opensak.settings_store import get_store
+        saved_list = get_store().get("databases.list")
+        assert any(d["path"] == str(manager.active.path) for d in saved_list)
+
+
 # ── ensure_active_initialised ─────────────────────────────────────────────────
 
 class TestEnsureActiveInitialised:

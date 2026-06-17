@@ -269,6 +269,19 @@ STRINGS: dict[str, str] = {
     "settings_nominatim_cb":                       "Enable online lookup for higher accuracy",
     "settings_nominatim_hint":                     "When enabled, county, state and country data is further refined using OpenStreetMap after the fast offline pass.\n\nNote: requires an internet connection and takes about 1 second per waypoint. A database of 10 000 waypoints takes around 3 hours to fully refine. Leave this off unless you need higher accuracy near administrative boundaries.",
 
+    "settings_group_folders": "Folders",
+    "settings_install_dir_label": "Installation folder (settings & logs):",
+    "settings_install_dir_note": "To change this, run the setup wizard again or edit the bootstrap file manually.",
+    "settings_db_dir_label": "Database folder:",
+    "settings_folders_restart_hint": "Changing the database folder requires restarting OpenSAK to take effect.",
+    "settings_db_dir_changed_message": "The database folder has been changed. Restart OpenSAK for this to take effect.",
+
+    "settings_move_databases_title": "Move existing databases?",
+    "settings_move_databases_msg": "You have {count} existing database(s). Do you want to move them to the new folder as well?",
+    "settings_move_keep_originals": "Move and keep originals",
+    "settings_move_delete_originals": "Move and delete originals",
+    "settings_move_skip": "Don't move (new databases only)",
+    "settings_move_errors_title": "Some databases could not be moved",
     "settings_group_search":                       "Search Engine",
     "settings_search_min_chars_label":             "Minimum characters:",
     "settings_search_debounce_label":              "Debounce delay (ms):",
@@ -422,6 +435,9 @@ STRINGS: dict[str, str] = {
 
     # ── Database error messages ──────────────────────────────────────────────
     "db_err_name_exists":           "A database named '{name}' already exists.",
+
+    "db_err_move_target_exists": "Cannot move '{name}': a file already exists at {path}.",
+    "db_err_move_failed": "Could not move '{name}': {error}",
     "db_err_mkdir_failed":          "Cannot create folder:\n{path}",
     "db_err_dir_not_found":         "Folder does not exist:\n{path}",
     "db_err_no_write_permission":   "No write permission for folder:\n{path}",

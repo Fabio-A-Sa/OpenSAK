@@ -269,6 +269,19 @@ STRINGS: dict[str, str] = {
     "settings_nominatim_cb":                       "Enable online lookup for higher accuracy",
     "settings_nominatim_hint":                     "When enabled, county, state and country data is further refined using OpenStreetMap after the fast offline pass.\n\nNote: requires an internet connection and takes about 1 second per waypoint. A database of 10 000 waypoints takes around 3 hours to fully refine. Leave this off unless you need higher accuracy near administrative boundaries.",
 
+    "settings_group_folders": "Dossiers",
+    "settings_install_dir_label": "Dossier d'installation (paramètres et journaux) :",
+    "settings_install_dir_note": "Pour modifier ceci, relancez l'assistant de configuration ou modifiez le fichier bootstrap manuellement.",
+    "settings_db_dir_label": "Dossier des bases de données :",
+    "settings_folders_restart_hint": "La modification du dossier des bases de données nécessite un redémarrage d'OpenSAK.",
+    "settings_db_dir_changed_message": "Le dossier des bases de données a été modifié. Redémarrez OpenSAK pour appliquer ce changement.",
+
+    "settings_move_databases_title": "Déplacer les bases de données existantes ?",
+    "settings_move_databases_msg": "Vous avez {count} base(s) de données existante(s). Voulez-vous aussi les déplacer vers le nouveau dossier ?",
+    "settings_move_keep_originals": "Déplacer et garder les originaux",
+    "settings_move_delete_originals": "Déplacer et supprimer les originaux",
+    "settings_move_skip": "Ne pas déplacer (nouvelles bases uniquement)",
+    "settings_move_errors_title": "Certaines bases de données n'ont pas pu être déplacées",
     "settings_group_search":                       "Moteur de recherche",
     "settings_search_min_chars_label":             "Caractères minimum :",
     "settings_search_debounce_label":              "Délai de debounce (ms) :",
@@ -422,6 +435,9 @@ STRINGS: dict[str, str] = {
 
     # ── Messages d'erreur de base de données ─────────────────────────────────
     "db_err_name_exists":           "Une base de données nommée '{name}' existe déjà.",
+
+    "db_err_move_target_exists": "Impossible de déplacer « {name} » : un fichier existe déjà à {path}.",
+    "db_err_move_failed": "Impossible de déplacer « {name} » : {error}",
     "db_err_mkdir_failed":          "Impossible de créer le dossier :\n{path}",
     "db_err_dir_not_found":         "Le dossier n'existe pas :\n{path}",
     "db_err_no_write_permission":   "Pas de permission d'écriture pour le dossier :\n{path}",

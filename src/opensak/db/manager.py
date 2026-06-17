@@ -288,6 +288,85 @@ class DatabaseManager:
         self._save_to_settings()
         return info
 
+    def move_databases_to(
+        self, new_dir: Path, delete_originals: bool
+    ) -> list[str]:
+        """
+        Overfør alle kendte databaser (inkl. -shm/-wal sidecar-filer) til
+        en ny mappe og opdater deres stier i listen.
+
+        Bruges når brugeren ændrer database-mappen i Settings → Advanced
+        og vælger at flytte sine eksisterende databaser med (i stedet for
+        kun at lade nye databaser blive oprettet i den nye mappe).
+
+        Args:
+            new_dir: destinationsmappen — oprettes hvis den ikke findes.
+            delete_originals: hvis True slettes kilde-filerne efter
+                kopiering ("Flyt og slet"); hvis False bevares de
+                ("Flyt og behold").
+
+        Returnerer en liste af fejlbeskeder for databaser der ikke kunne
+        flyttes (fx fordi destinationen allerede har en fil med samme
+        navn) — tom liste hvis alt gik godt. Databaser der fejler bliver
+        IKKE rørt og forbliver på deres oprindelige sti.
+
+        Den aktive database håndteres sidst og kræver at dens engine er
+        disposed før filen kan flyttes/kopieres sikkert (samme mønster
+        som delete_database, for at undgå låste filer på Windows).
+        """
+        new_dir.mkdir(parents=True, exist_ok=True)
+        errors: list[str] = []
+        updated_any = False
+
+        from opensak.db.database import dispose_engine
+
+        for db_info in list(self._databases):
+            old_path = db_info.path
+            if old_path.parent == new_dir:
+                continue  # allerede i destinationen — intet at gøre
+
+            new_path = new_dir / old_path.name
+            if new_path.exists() and new_path != old_path:
+                errors.append(
+                    tr("db_err_move_target_exists", name=db_info.name, path=str(new_path))
+                )
+                continue
+
+            # Luk engine FØR filoperationer — undgår låste filer på Windows
+            dispose_engine(old_path)
+            gc.collect()
+            time.sleep(0.05)
+
+            try:
+                shutil.copy2(old_path, new_path)
+                # Sidecar-filer (SQLite WAL-mode) — kopiér hvis de findes
+                for suffix in ("-shm", "-wal"):
+                    side = Path(str(old_path) + suffix)
+                    if side.exists():
+                        shutil.copy2(side, Path(str(new_path) + suffix))
+            except OSError as exc:
+                errors.append(
+                    tr("db_err_move_failed", name=db_info.name, error=str(exc))
+                )
+                continue
+
+            if delete_originals:
+                for suffix in ("", "-shm", "-wal"):
+                    f = Path(str(old_path) + suffix)
+                    try:
+                        if f.exists():
+                            f.unlink()
+                    except OSError:
+                        pass  # ikke kritisk — kopien findes allerede
+
+            db_info.path = new_path
+            updated_any = True
+
+        if updated_any:
+            self._save_to_settings()
+
+        return errors
+
     def remove_from_list(self, db_info: "DatabaseInfo") -> None:
         """Fjern database fra listen uden at slette filen."""
         if db_info == self._active:

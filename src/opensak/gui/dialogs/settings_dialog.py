@@ -16,6 +16,7 @@ from PySide6.QtWidgets import (
 from opensak.gui.icon import OpenSAKMessageBox as QMessageBox
 from PySide6.QtGui import QPixmap, QFont
 from opensak.gui.settings import get_settings, HomePoint
+from opensak.gui.dialogs.widgets import DirRow
 from opensak.lang import tr, AVAILABLE_LANGUAGES, current_language
 from opensak.coords import FORMATS, format_coords
 from opensak.utils.types import CoordFormat
@@ -325,6 +326,32 @@ class SettingsDialog(QDialog):
         layout = QVBoxLayout(tab)
         layout.setContentsMargins(12, 12, 12, 12)
         layout.setSpacing(12)
+
+        # ── Folders (install / database location) ──────────────────────────────
+        from opensak.settings_store import get_install_dir, get_db_dir
+
+        folders_group = QGroupBox(tr("settings_group_folders"))
+        folders_layout = QVBoxLayout(folders_group)
+
+        folders_layout.addWidget(QLabel(tr("settings_install_dir_label")))
+        self._install_dir_row = DirRow(get_install_dir(), browsable=False)
+        folders_layout.addWidget(self._install_dir_row)
+        install_note = QLabel(tr("settings_install_dir_note"))
+        install_note.setWordWrap(True)
+        install_note.setStyleSheet("color: gray; font-size: 10px;")
+        folders_layout.addWidget(install_note)
+
+        folders_layout.addSpacing(8)
+        folders_layout.addWidget(QLabel(tr("settings_db_dir_label")))
+        self._db_dir_row = DirRow(get_db_dir())
+        folders_layout.addWidget(self._db_dir_row)
+
+        folders_hint = QLabel(tr("settings_folders_restart_hint"))
+        folders_hint.setWordWrap(True)
+        folders_hint.setStyleSheet("color: gray; font-size: 10px;")
+        folders_layout.addWidget(folders_hint)
+
+        layout.addWidget(folders_group)
 
         # ── Search behaviour ──────────────────────────────────────────────────
         search_group = QGroupBox(tr("settings_group_search"))
@@ -800,6 +827,9 @@ class SettingsDialog(QDialog):
     def _load(self) -> None:
         s = get_settings()
         self._reload_points_table()
+        from opensak.settings_store import get_install_dir, get_db_dir
+        self._install_dir_row.set_path(get_install_dir())
+        self._db_dir_row.set_path(get_db_dir())
         self._miles_cb.setChecked(s.use_miles)
         self._archived_cb.setChecked(s.show_archived)
         self._found_cb.setChecked(s.show_found)
@@ -860,6 +890,53 @@ class SettingsDialog(QDialog):
             s.nominatim_enabled = self._nominatim_cb.isChecked()
         s.updates_check_enabled = self._update_check_cb.isChecked()
         s.sync()
+
+        # Database-mappe — kun gem og advar hvis brugeren faktisk har ændret den
+        from opensak.settings_store import get_db_dir, get_store
+        new_db_dir = self._db_dir_row.path
+        if new_db_dir != get_db_dir():
+            from opensak.db.manager import get_db_manager
+            manager = get_db_manager()
+            existing_count = len(manager.databases)
+
+            if existing_count > 0:
+                move_box = QMessageBox(self)
+                move_box.setWindowTitle(tr("settings_move_databases_title"))
+                move_box.setText(
+                    tr("settings_move_databases_msg", count=existing_count)
+                )
+                move_box.setIcon(QMessageBox.Icon.Question)
+                btn_move_keep = move_box.addButton(
+                    tr("settings_move_keep_originals"), QMessageBox.ButtonRole.AcceptRole
+                )
+                btn_move_delete = move_box.addButton(
+                    tr("settings_move_delete_originals"), QMessageBox.ButtonRole.DestructiveRole
+                )
+                btn_no_move = move_box.addButton(
+                    tr("settings_move_skip"), QMessageBox.ButtonRole.RejectRole
+                )
+                move_box.exec()
+                clicked = move_box.clickedButton()
+
+                if clicked in (btn_move_keep, btn_move_delete):
+                    delete_originals = clicked == btn_move_delete
+                    errors = manager.move_databases_to(new_db_dir, delete_originals)
+                    if errors:
+                        QMessageBox.warning(
+                            self,
+                            tr("settings_move_errors_title"),
+                            "\n".join(errors),
+                        )
+                # btn_no_move: gemmer kun stien — eksisterende databaser
+                # forbliver hvor de er, kun nye oprettes i den nye mappe.
+
+            new_db_dir.mkdir(parents=True, exist_ok=True)
+            get_store().set("databases.dir", str(new_db_dir))
+            QMessageBox.information(
+                self,
+                tr("restart_required"),
+                tr("settings_db_dir_changed_message"),
+            )
 
         new_lang = self._lang_combo.currentData()
         if new_lang != current_language():

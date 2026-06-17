@@ -8,6 +8,27 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.14.0-beta.3] — 2026-06-17
+
+> **Beta release** — continuing the 1.14.0 testing period.
+
+### Added
+
+- **Database and installation folders are now visible in Settings → Advanced**
+  — a new "Folders" section shows the current installation folder
+  (read-only) and the database folder. The database folder can be changed
+  directly from Settings, not just during the initial setup wizard.
+
+- **Moving existing databases to a new folder** — when changing the database
+  folder in Settings, if existing databases are found, you're now asked
+  whether to move them along: "Move and keep originals", "Move and delete
+  originals", or leave them where they are (only new databases will use the
+  new folder). Moving correctly handles SQLite WAL/SHM sidecar files and
+  protects against accidentally overwriting an existing file at the
+  destination.
+
+---
+
 ## [1.14.0-beta.2] — 2026-06-17
 
 > **Beta release** — continuing the 1.14.0 testing period.

@@ -269,6 +269,19 @@ STRINGS: dict[str, str] = {
     "settings_nominatim_cb":                       "Enable online lookup for higher accuracy",
     "settings_nominatim_hint":                     "When enabled, county, state and country data is further refined using OpenStreetMap after the fast offline pass.\n\nNote: requires an internet connection and takes about 1 second per waypoint. A database of 10 000 waypoints takes around 3 hours to fully refine. Leave this off unless you need higher accuracy near administrative boundaries.",
 
+    "settings_group_folders": "Mapper",
+    "settings_install_dir_label": "Installationsmappe (indstillinger og logs):",
+    "settings_install_dir_note": "For at ændre denne, køt opsætnings-guiden igen, eller redigér bootstrap-filen manuelt.",
+    "settings_db_dir_label": "Databasemappe:",
+    "settings_folders_restart_hint": "Ændring af databasemappen kræver genstart af OpenSAK for at træde i kraft.",
+    "settings_db_dir_changed_message": "Databasemappen er blevet ændret. Genstart OpenSAK for at ændringen træder i kraft.",
+
+    "settings_move_databases_title": "Flyt eksisterende databaser?",
+    "settings_move_databases_msg": "Du har {count} eksisterende database(r). Vil du også flytte dem til den nye mappe?",
+    "settings_move_keep_originals": "Flyt og behold originaler",
+    "settings_move_delete_originals": "Flyt og slet originaler",
+    "settings_move_skip": "Flyt ikke (kun nye databaser)",
+    "settings_move_errors_title": "Nogle databaser kunne ikke flyttes",
     "settings_group_search":                       "Søgemaskine",
     "settings_search_min_chars_label":             "Minimumstegn:",
     "settings_search_debounce_label":              "Debounce-forsinkelse (ms):",
@@ -422,6 +435,9 @@ STRINGS: dict[str, str] = {
 
     # ── Database fejlbeskeder ────────────────────────────────────────────────
     "db_err_name_exists":           "En database med navnet '{name}' eksisterer allerede.",
+
+    "db_err_move_target_exists": "Kan ikke flytte '{name}': en fil findes allerede på {path}.",
+    "db_err_move_failed": "Kunne ikke flytte '{name}': {error}",
     "db_err_mkdir_failed":          "Kan ikke oprette mappen:\n{path}",
     "db_err_dir_not_found":         "Mappen eksisterer ikke:\n{path}",
     "db_err_no_write_permission":   "Ingen skriverettigheder til mappen:\n{path}",

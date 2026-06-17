@@ -269,6 +269,19 @@ STRINGS: dict[str, str] = {
     "settings_nominatim_cb":                       "Enable online lookup for higher accuracy",
     "settings_nominatim_hint":                     "When enabled, county, state and country data is further refined using OpenStreetMap after the fast offline pass.\n\nNote: requires an internet connection and takes about 1 second per waypoint. A database of 10 000 waypoints takes around 3 hours to fully refine. Leave this off unless you need higher accuracy near administrative boundaries.",
 
+    "settings_group_folders": "Pastas",
+    "settings_install_dir_label": "Pasta de instalação (definições e registos):",
+    "settings_install_dir_note": "Para alterar isto, execute novamente o assistente de configuração ou edite o ficheiro bootstrap manualmente.",
+    "settings_db_dir_label": "Pasta de bases de dados:",
+    "settings_folders_restart_hint": "Alterar a pasta de bases de dados requer reiniciar o OpenSAK.",
+    "settings_db_dir_changed_message": "A pasta de bases de dados foi alterada. Reinicie o OpenSAK para que isto tenha efeito.",
+
+    "settings_move_databases_title": "Mover bases de dados existentes?",
+    "settings_move_databases_msg": "Tem {count} base(s) de dados existente(s). Deseja também movê-las para a nova pasta?",
+    "settings_move_keep_originals": "Mover e manter originais",
+    "settings_move_delete_originals": "Mover e eliminar originais",
+    "settings_move_skip": "Não mover (apenas novas bases de dados)",
+    "settings_move_errors_title": "Algumas bases de dados não puderam ser movidas",
     "settings_group_search":                       "Motor de Pesquisa",
     "settings_search_min_chars_label":             "Caracteres mínimos:",
     "settings_search_debounce_label":              "Atraso de debounce (ms):",
@@ -422,6 +435,9 @@ STRINGS: dict[str, str] = {
 
     # ── Mensagens de erro de base de dados ───────────────────────────────────
     "db_err_name_exists":           "Já existe uma base de dados com o nome '{name}'.",
+
+    "db_err_move_target_exists": "Não é possível mover '{name}': já existe um ficheiro em {path}.",
+    "db_err_move_failed": "Não foi possível mover '{name}': {error}",
     "db_err_mkdir_failed":          "Não foi possível criar a pasta:\n{path}",
     "db_err_dir_not_found":         "A pasta não existe:\n{path}",
     "db_err_no_write_permission":   "Sem permissão de escrita na pasta:\n{path}",

@@ -272,6 +272,19 @@ STRINGS: dict[str, str] = {
     "settings_nominatim_cb":                       "Online opzoeken inschakelen voor hogere nauwkeurigheid",
     "settings_nominatim_hint":                     "Wanneer ingeschakeld, worden gemeente-, provincie- en landgegevens verder verfijnd via OpenStreetMap na de snelle offline stap.\n\nOpmerking: vereist een internetverbinding en duurt ongeveer 1 seconde per waypoint. Een database met 10.000 waypoints duurt ongeveer 3 uur om volledig te verfijnen. Laat dit uit tenzij je hogere nauwkeurigheid nodig hebt nabij administratieve grenzen.",
 
+    "settings_group_folders": "Mappen",
+    "settings_install_dir_label": "Installatiemap (instellingen en logboeken):",
+    "settings_install_dir_note": "Om dit te wijzigen, voert u de installatiewizard opnieuw uit of bewerkt u het bootstrap-bestand handmatig.",
+    "settings_db_dir_label": "Databasemap:",
+    "settings_folders_restart_hint": "Het wijzigen van de databasemap vereist het opnieuw starten van OpenSAK.",
+    "settings_db_dir_changed_message": "De databasemap is gewijzigd. Start OpenSAK opnieuw om dit door te voeren.",
+
+    "settings_move_databases_title": "Bestaande databases verplaatsen?",
+    "settings_move_databases_msg": "U heeft {count} bestaande database(s). Wilt u deze ook naar de nieuwe map verplaatsen?",
+    "settings_move_keep_originals": "Verplaatsen en originelen behouden",
+    "settings_move_delete_originals": "Verplaatsen en originelen verwijderen",
+    "settings_move_skip": "Niet verplaatsen (alleen nieuwe databases)",
+    "settings_move_errors_title": "Sommige databases konden niet worden verplaatst",
     "settings_group_search":                       "Zoekmachine",
     "settings_search_min_chars_label":             "Minimale tekens:",
     "settings_search_debounce_label":              "Vertraging (ms):",
@@ -425,6 +438,9 @@ STRINGS: dict[str, str] = {
 
     # ── Database error messages ──────────────────────────────────────────────
     "db_err_name_exists":           "Er bestaat al een database met de naam '{name}'.",
+
+    "db_err_move_target_exists": "Kan '{name}' niet verplaatsen: er bestaat al een bestand op {path}.",
+    "db_err_move_failed": "Kan '{name}' niet verplaatsen: {error}",
     "db_err_mkdir_failed":          "Kan map niet aanmaken:\n{path}",
     "db_err_dir_not_found":         "Map bestaat niet:\n{path}",
     "db_err_no_write_permission":   "Geen schrijfrechten voor map:\n{path}",

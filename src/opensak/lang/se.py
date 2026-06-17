@@ -269,6 +269,19 @@ STRINGS: dict[str, str] = {
     "settings_nominatim_cb":                       "Enable online lookup for higher accuracy",
     "settings_nominatim_hint":                     "When enabled, county, state and country data is further refined using OpenStreetMap after the fast offline pass.\n\nNote: requires an internet connection and takes about 1 second per waypoint. A database of 10 000 waypoints takes around 3 hours to fully refine. Leave this off unless you need higher accuracy near administrative boundaries.",
 
+    "settings_group_folders": "Mappar",
+    "settings_install_dir_label": "Installationsmapp (inställningar och loggar):",
+    "settings_install_dir_note": "För att ändra detta, köt installationsguiden igen eller redigera bootstrap-filen manuellt.",
+    "settings_db_dir_label": "Databasmapp:",
+    "settings_folders_restart_hint": "Att ändra databasmappen kräver att OpenSAK startas om.",
+    "settings_db_dir_changed_message": "Databasmappen har ändrats. Starta om OpenSAK för att detta ska träda i kraft.",
+
+    "settings_move_databases_title": "Flytta befintliga databaser?",
+    "settings_move_databases_msg": "Du har {count} befintliga databas(er). Vill du också flytta dem till den nya mappen?",
+    "settings_move_keep_originals": "Flytta och behåll original",
+    "settings_move_delete_originals": "Flytta och ta bort original",
+    "settings_move_skip": "Flytta inte (endast nya databaser)",
+    "settings_move_errors_title": "Vissa databaser kunde inte flyttas",
     "settings_group_search":                       "Sökmotor",
     "settings_search_min_chars_label":             "Minsta antal tecken:",
     "settings_search_debounce_label":              "Debounce-fördröjning (ms):",
@@ -422,6 +435,9 @@ STRINGS: dict[str, str] = {
 
     # ── Databasfelmeddelanden ────────────────────────────────────────────────
     "db_err_name_exists":           "En databas med namnet '{name}' finns redan.",
+
+    "db_err_move_target_exists": "Kan inte flytta '{name}': en fil finns redan på {path}.",
+    "db_err_move_failed": "Kunde inte flytta '{name}': {error}",
     "db_err_mkdir_failed":          "Kunde inte skapa mappen:\n{path}",
     "db_err_dir_not_found":         "Mappen finns inte:\n{path}",
     "db_err_no_write_permission":   "Ingen skrivbehörighet för mappen:\n{path}",

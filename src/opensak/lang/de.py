@@ -269,6 +269,19 @@ STRINGS: dict[str, str] = {
     "settings_nominatim_cb":                       "Enable online lookup for higher accuracy",
     "settings_nominatim_hint":                     "When enabled, county, state and country data is further refined using OpenStreetMap after the fast offline pass.\n\nNote: requires an internet connection and takes about 1 second per waypoint. A database of 10 000 waypoints takes around 3 hours to fully refine. Leave this off unless you need higher accuracy near administrative boundaries.",
 
+    "settings_group_folders": "Ordner",
+    "settings_install_dir_label": "Installationsordner (Einstellungen & Protokolle):",
+    "settings_install_dir_note": "Um dies zu ändern, führen Sie den Einrichtungsassistenten erneut aus oder bearbeiten Sie die Bootstrap-Datei manuell.",
+    "settings_db_dir_label": "Datenbankordner:",
+    "settings_folders_restart_hint": "Das Ändern des Datenbankordners erfordert einen Neustart von OpenSAK.",
+    "settings_db_dir_changed_message": "Der Datenbankordner wurde geändert. Starten Sie OpenSAK neu, damit dies wirksam wird.",
+
+    "settings_move_databases_title": "Vorhandene Datenbanken verschieben?",
+    "settings_move_databases_msg": "Sie haben {count} vorhandene Datenbank(en). Möchten Sie diese ebenfalls in den neuen Ordner verschieben?",
+    "settings_move_keep_originals": "Verschieben und Originale behalten",
+    "settings_move_delete_originals": "Verschieben und Originale löschen",
+    "settings_move_skip": "Nicht verschieben (nur neue Datenbanken)",
+    "settings_move_errors_title": "Einige Datenbanken konnten nicht verschoben werden",
     "settings_group_search":                       "Suchmaschine",
     "settings_search_min_chars_label":             "Mindestzeichen:",
     "settings_search_debounce_label":              "Debounce-Verzögerung (ms):",
@@ -422,6 +435,9 @@ STRINGS: dict[str, str] = {
 
     # ── Datenbank-Fehlermeldungen ────────────────────────────────────────────
     "db_err_name_exists":           "Eine Datenbank mit dem Namen '{name}' existiert bereits.",
+
+    "db_err_move_target_exists": "'{name}' kann nicht verschoben werden: unter {path} existiert bereits eine Datei.",
+    "db_err_move_failed": "'{name}' konnte nicht verschoben werden: {error}",
     "db_err_mkdir_failed":          "Der Ordner konnte nicht erstellt werden:\n{path}",
     "db_err_dir_not_found":         "Der Ordner existiert nicht:\n{path}",
     "db_err_no_write_permission":   "Keine Schreibberechtigung für den Ordner:\n{path}",

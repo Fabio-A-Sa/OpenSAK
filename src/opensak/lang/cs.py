@@ -269,6 +269,19 @@ STRINGS: dict[str, str] = {
     "settings_nominatim_cb":                       "Enable online lookup for higher accuracy",
     "settings_nominatim_hint":                     "When enabled, county, state and country data is further refined using OpenStreetMap after the fast offline pass.\n\nNote: requires an internet connection and takes about 1 second per waypoint. A database of 10 000 waypoints takes around 3 hours to fully refine. Leave this off unless you need higher accuracy near administrative boundaries.",
 
+    "settings_group_folders": "Složky",
+    "settings_install_dir_label": "Instalační složka (nastavení a protokoly):",
+    "settings_install_dir_note": "Chcete-li to změnit, spusťte znovu průvodce nastavením nebo upravte soubor bootstrap manuálně.",
+    "settings_db_dir_label": "Složka databáze:",
+    "settings_folders_restart_hint": "Změna složky databáze vyžaduje restart OpenSAK.",
+    "settings_db_dir_changed_message": "Složka databáze byla změněna. Restartujte OpenSAK, aby se změna projevila.",
+
+    "settings_move_databases_title": "Přesunout existující databáze?",
+    "settings_move_databases_msg": "Máte {count} existujících databází. Chcete je také přesunout do nové složky?",
+    "settings_move_keep_originals": "Přesunout a zachovat originály",
+    "settings_move_delete_originals": "Přesunout a odstranit originály",
+    "settings_move_skip": "Nepřesouvat (pouze nové databáze)",
+    "settings_move_errors_title": "Některé databáze se nepodařilo přesunout",
     "settings_group_search":                       "Vyhledávací engine",
     "settings_search_min_chars_label":             "Minimální počet znaků:",
     "settings_search_debounce_label":              "Zpoždění debounce (ms):",
@@ -422,6 +435,9 @@ STRINGS: dict[str, str] = {
 
     # ── Chybové zprávy databáze ──────────────────────────────────────────────
     "db_err_name_exists":           "Databáze s názvem '{name}' již existuje.",
+
+    "db_err_move_target_exists": "Nelze přesunout '{name}': soubor na {path} již existuje.",
+    "db_err_move_failed": "Nelze přesunout '{name}': {error}",
     "db_err_mkdir_failed":          "Nelze vytvořit složku:\n{path}",
     "db_err_dir_not_found":         "Složka neexistuje:\n{path}",
     "db_err_no_write_permission":   "Nemáte oprávnění k zápisu do složky:\n{path}",

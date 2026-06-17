@@ -18,45 +18,13 @@ from pathlib import Path
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont
 from PySide6.QtWidgets import (
-    QDialog, QDialogButtonBox, QFileDialog, QHBoxLayout,
+    QDialog, QDialogButtonBox, QHBoxLayout,
     QLabel, QLineEdit, QPushButton, QStackedWidget,
     QVBoxLayout, QWidget, QComboBox,
 )
 
 from opensak.lang import tr, AVAILABLE_LANGUAGES, current_language
-
-
-# ── Hjælpe-widget: mappe-vælger række ────────────────────────────────────────
-
-class _DirRow(QWidget):
-    """En linje med en read-only sti og en Gennemse-knap."""
-
-    def __init__(self, path: Path, parent=None):
-        super().__init__(parent)
-        lay = QHBoxLayout(self)
-        lay.setContentsMargins(0, 0, 0, 0)
-        self._edit = QLineEdit(str(path))
-        self._edit.setReadOnly(True)
-        self._btn = QPushButton(tr("wizard_browse"))
-        self._btn.setFixedWidth(100)
-        lay.addWidget(self._edit)
-        lay.addWidget(self._btn)
-        self._btn.clicked.connect(self._browse)
-
-    def _browse(self):
-        current = Path(self._edit.text())
-        chosen = QFileDialog.getExistingDirectory(
-            self,
-            tr("wizard_choose_dir"),
-            str(current),
-            QFileDialog.Option.ShowDirsOnly,
-        )
-        if chosen:
-            self._edit.setText(chosen)
-
-    @property
-    def path(self) -> Path:
-        return Path(self._edit.text())
+from opensak.gui.dialogs.widgets import DirRow as _DirRow
 
 
 # ── Individuelle trin ─────────────────────────────────────────────────────────
