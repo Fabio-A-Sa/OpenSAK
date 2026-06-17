@@ -2,12 +2,12 @@
 src/opensak/updater.py — Version check mod GitHub Releases API.
 
 Tjekker i baggrunden om der er en ny version af OpenSAK tilgængelig.
-Bruger kun Python stdlib — ingen eksterne afhængigheder.
 """
 
 from __future__ import annotations
 
 import json
+import ssl
 import urllib.request
 from urllib.error import URLError
 
@@ -16,6 +16,32 @@ from PySide6.QtCore import QThread, Signal
 from opensak.logger import get_logger
 
 log = get_logger("updater")
+
+
+def _build_ssl_context() -> ssl.SSLContext:
+    """
+    Byg en SSL-kontekst der eksplicit bruger certifi's certifikat-bundt.
+
+    Uden dette kan HTTPS-kald fejle med CERTIFICATE_VERIFY_FAILED i en
+    PyInstaller-bundlet .exe på Windows, fordi Python's standard SSL-
+    verifikation falder tilbage til systemets certifikat-store, som ikke
+    altid er korrekt tilgængelig i en bundlet kontekst. certifi's
+    cacert.pem bundles eksplicit med .spec-filen og bruges her i stedet
+    for at stole på systemets opslag.
+
+    Falder tilbage til Python's standard SSL-kontekst hvis certifi af en
+    eller anden grund ikke er tilgængeligt — bedre at forsøge med
+    systemets certifikater end at crashe helt.
+    """
+    try:
+        import certifi
+        return ssl.create_default_context(cafile=certifi.where())
+    except ImportError:
+        log.debug("certifi ikke tilgængeligt — falder tilbage til systemets SSL-kontekst")
+        return ssl.create_default_context()
+
+
+_SSL_CONTEXT = _build_ssl_context()
 
 GITHUB_API_URL          = "https://api.github.com/repos/AgreeDK/opensak/releases/latest"
 GITHUB_API_ALL_URL      = "https://api.github.com/repos/AgreeDK/opensak/releases"
@@ -87,7 +113,7 @@ def fetch_latest_release() -> dict | None:
             headers={"Accept": "application/vnd.github+json",
                      "User-Agent": "OpenSAK-version-check"},
         )
-        with urllib.request.urlopen(req, timeout=REQUEST_TIMEOUT) as resp:
+        with urllib.request.urlopen(req, timeout=REQUEST_TIMEOUT, context=_SSL_CONTEXT) as resp:
             data = json.load(resp)
         release = {
             "tag_name": data.get("tag_name", ""),
@@ -119,7 +145,7 @@ def fetch_latest_prerelease() -> dict | None:
             headers={"Accept": "application/vnd.github+json",
                      "User-Agent": "OpenSAK-version-check"},
         )
-        with urllib.request.urlopen(req, timeout=REQUEST_TIMEOUT) as resp:
+        with urllib.request.urlopen(req, timeout=REQUEST_TIMEOUT, context=_SSL_CONTEXT) as resp:
             data = json.load(resp)
         if not isinstance(data, list):
             return None

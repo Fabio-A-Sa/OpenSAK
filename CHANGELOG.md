@@ -8,6 +8,23 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.14.0-beta.4] — 2026-06-17
+
+> **Beta release** — continuing the 1.14.0 testing period.
+
+### Fixed
+
+- **Update checker failed with SSL certificate errors on Windows** — the
+  bundled `.exe` could not verify HTTPS connections to the GitHub API
+  (`CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate`),
+  because `certifi`'s root certificate bundle was not included in the
+  PyInstaller build and the code relied on the system's certificate store,
+  which isn't always reliably accessible from a bundled executable. The
+  updater now explicitly uses `certifi`'s certificate bundle via a
+  dedicated SSL context, and the bundle is packaged with the build.
+
+---
+
 ## [1.14.0-beta.3] — 2026-06-17
 
 > **Beta release** — continuing the 1.14.0 testing period.

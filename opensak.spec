@@ -15,6 +15,14 @@ block_cipher = None
 # them — bundle their data and force the imports below.
 geocode_datas = collect_data_files("reverse_geocoder") + collect_data_files("pycountry")
 
+# certifi's cacert.pem is required for HTTPS calls (update checker) to work
+# from a bundled .exe — without it, Windows builds can fail SSL verification
+# even though the same code works fine from a normal Python install, because
+# urllib falls back to a system certificate store PyInstaller's bundle does
+# not always expose correctly.
+import certifi
+certifi_datas = [(certifi.where(), "certifi")]
+
 # Platform-specific icon
 if sys.platform == "win32":
     ICON = str(Path("assets/icons/opensak.ico"))
@@ -32,13 +40,14 @@ a = Analysis(
         ("assets/icons/opensak.ico",  "assets/icons/"),
         ("assets/icons/opensak.icns", "assets/icons/"),
         ("src/opensak/lang/",          "opensak/lang/"),
-    ] + geocode_datas,
+    ] + geocode_datas + certifi_datas,
     hiddenimports=[
         "PySide6.QtWebEngineWidgets",
         "PySide6.QtWebEngineCore",
         "sqlalchemy.dialects.sqlite",
         "reverse_geocoder",
         "pycountry",
+        "certifi",
     ],
     hookspath=[],
     hooksconfig={},

@@ -17,6 +17,7 @@ dependencies = [
     "reverse_geocoder>=1.5",
     "pycountry>=23.12",
     "numpy>=1.24",
+    "certifi>=2024.2.2",
 ]
 
 [project.optional-dependencies]
