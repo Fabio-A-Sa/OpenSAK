@@ -899,10 +899,14 @@ STRINGS: dict[str, str] = {
     "infobar_total":                     "caches i database",
     "infobar_center":                    "Centerpunkt",
     "infobar_count_label":               "Antal:",
-    "infobar_found_tooltip":             "Fundne caches",
-    "infobar_all_tooltip":               "Alle caches i filter",
-    "infobar_inactive_tooltip":          "Arkiverede + Deaktiverede",
-    "infobar_owned_tooltip":             "Dine caches",
+    "infobar_found_tooltip":             "Fundne caches — klik for at filtrere",
+    "infobar_all_tooltip":               "Alle caches i filter — klik for at nulstille filter",
+    "infobar_inactive_tooltip":          "Arkiverede + Deaktiverede — klik for at filtrere",
+    "infobar_owned_tooltip":             "Dine caches — klik for at filtrere",
+    "infobar_filter_found":               "Fundne",
+    "infobar_filter_owned":               "Egne caches",
+    "infobar_filter_inactive":            "Inaktive",
+    "infobar_owned_no_username":          "Angiv dit Geocaching.com brugernavn under Indstillinger for at filtrere på egne caches",
 
     # ── Appearance / theme ──────────────────────────────────────────────
     "settings_group_appearance":               "Udseende",

@@ -899,10 +899,14 @@ STRINGS: dict[str, str] = {
     "infobar_total":                     "cacher i databasen",
     "infobar_center":                    "Mittpunkt",
     "infobar_count_label":               "Antal:",
-    "infobar_found_tooltip":             "Hittade cacher",
-    "infobar_all_tooltip":               "Alla cacher i filtret",
-    "infobar_inactive_tooltip":          "Arkiverade + Inaktiverade",
-    "infobar_owned_tooltip":             "Dina cacher",
+    "infobar_found_tooltip":             "Hittade cacher — klicka för att filtrera",
+    "infobar_all_tooltip":               "Alla cacher i filtret — klicka för att rensa filter",
+    "infobar_inactive_tooltip":          "Arkiverade + Inaktiverade — klicka för att filtrera",
+    "infobar_owned_tooltip":             "Dina cacher — klicka för att filtrera",
+    "infobar_filter_found":               "Hittade",
+    "infobar_filter_owned":               "Mina cacher",
+    "infobar_filter_inactive":            "Inaktiva",
+    "infobar_owned_no_username":          "Ange ditt Geocaching.com-användarnamn i Inställningar för att filtrera på egna cacher",
 
     # ── Appearance / theme ──────────────────────────────────────────────
     "settings_group_appearance":               "Utseende",

@@ -895,10 +895,14 @@ STRINGS: dict[str, str] = {
     "infobar_total":                     "keší v databázi",
     "infobar_center":                    "Středový bod",
     "infobar_count_label":               "Počet:",
-    "infobar_found_tooltip":             "Nalezené keše",
-    "infobar_all_tooltip":               "Všechny keše ve filtru",
-    "infobar_inactive_tooltip":          "Archivované + Deaktivované",
-    "infobar_owned_tooltip":             "Vaše keše",
+    "infobar_found_tooltip":             "Nalezené keše — klikněte pro filtrování",
+    "infobar_all_tooltip":               "Všechny keše ve filtru — klikněte pro zrušení filtru",
+    "infobar_inactive_tooltip":          "Archivované + Deaktivované — klikněte pro filtrování",
+    "infobar_owned_tooltip":             "Vaše keše — klikněte pro filtrování",
+    "infobar_filter_found":               "Nalezené",
+    "infobar_filter_owned":               "Moje keše",
+    "infobar_filter_inactive":            "Neaktivní",
+    "infobar_owned_no_username":          "Nastavte své uživatelské jméno Geocaching.com v Nastavení pro filtrování vlastních keší",
 
     # ── Appearance / theme ──────────────────────────────────────────────
     "settings_group_appearance":               "Vzhled",

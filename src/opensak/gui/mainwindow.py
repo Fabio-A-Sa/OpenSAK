@@ -4,7 +4,7 @@ src/opensak/gui/mainwindow.py — Main application window.
 
 from __future__ import annotations
 from typing import TYPE_CHECKING, cast
-from PySide6.QtCore import Qt, QTimer
+from PySide6.QtCore import Qt, QTimer, Signal
 from PySide6.QtGui import QAction, QKeySequence, QDragEnterEvent, QDropEvent
 from PySide6.QtWidgets import (
     QMainWindow, QWidget, QSplitter, QVBoxLayout,
@@ -33,14 +33,43 @@ if TYPE_CHECKING:
     from opensak.gui.dialogs.trip_dialog import TripPlannerDialog
 
 
+class ClickableLabel(QLabel):
+    """QLabel der opfører sig som en klikbar knap (issue #270).
+
+    Bruges til de farvede count-felter i InfoBar, så et klik kan filtrere
+    cache-listen til den status feltet repræsenterer — ligesom man kan
+    klikke på status-tællerne i GSAK's Count panel.
+    """
+
+    clicked = Signal()
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.setCursor(Qt.CursorShape.PointingHandCursor)
+
+    def mousePressEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton:
+            self.clicked.emit()
+        super().mousePressEvent(event)
+
+
 class InfoBar(QFrame):
     """GSAK-style info bar between cache list and detail/map panel (issue #116).
 
     Shows (left to right):
       Filter name | Total caches in DB | Flagged count | Center point
       ... spacer ...
-      Count label:  Found (yellow)  All-in-filter (white)  Inactive (red)  Owned (green)
+      Count label:  Found (gul bg)  All-in-filter (neutral)  Inactive (rød bg)  Owned (grøn bg)
+
+    Issue #270: count-felterne matcher nu samme farver som gc_code-kolonnen
+    (sort tekst på farvet baggrund, GSAK-style) og er klikbare — et klik
+    filtrerer cache-listen til den tilsvarende status, ligesom i GSAK.
     """
+
+    found_clicked    = Signal()
+    all_clicked      = Signal()
+    inactive_clicked = Signal()
+    owned_clicked    = Signal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -87,32 +116,42 @@ class InfoBar(QFrame):
         # ── Spacer ────────────────────────────────────────────────────────────
         row.addStretch()
 
-        # ── Right side: color-coded counts ────────────────────────────────────
-        count_style = f"{small} font-weight: bold; padding: 0 3px;"
+        # ── Right side: color-coded counts (issue #270 — GSAK-farver, klikbare) ─
+        count_style = (
+            f"{small} font-weight: bold; color: #000000; "
+            "padding: 1px 5px; border-radius: 3px;"
+        )
 
         lbl_prefix = QLabel(tr("infobar_count_label"))
         lbl_prefix.setStyleSheet(f"{small} padding: 0 4px;")
         row.addWidget(lbl_prefix)
 
-        self._found_lbl = QLabel("0")
-        self._found_lbl.setStyleSheet(f"{count_style} color: #1e8449;")   # grøn — found
+        self._found_lbl = ClickableLabel("0")
+        self._found_lbl.setStyleSheet(f"{count_style} background-color: #f9e79f;")   # gul — fundet
         self._found_lbl.setToolTip(tr("infobar_found_tooltip"))
         row.addWidget(self._found_lbl)
 
-        self._all_lbl = QLabel("0")
-        self._all_lbl.setStyleSheet(f"{count_style} color: palette(text);")
+        self._all_lbl = ClickableLabel("0")
+        self._all_lbl.setStyleSheet(
+            f"{small} font-weight: bold; padding: 1px 5px; color: palette(text);"
+        )
         self._all_lbl.setToolTip(tr("infobar_all_tooltip"))
         row.addWidget(self._all_lbl)
 
-        self._inactive_lbl = QLabel("0")
-        self._inactive_lbl.setStyleSheet(f"{count_style} color: #c62828;")
+        self._inactive_lbl = ClickableLabel("0")
+        self._inactive_lbl.setStyleSheet(f"{count_style} background-color: #f1948a;")  # rød — arkiveret/disabled
         self._inactive_lbl.setToolTip(tr("infobar_inactive_tooltip"))
         row.addWidget(self._inactive_lbl)
 
-        self._owned_lbl = QLabel("0")
-        self._owned_lbl.setStyleSheet(f"{count_style} color: #d68910;")   # gul — owned/placed
+        self._owned_lbl = ClickableLabel("0")
+        self._owned_lbl.setStyleSheet(f"{count_style} background-color: #7dcea0;")   # grøn — egne caches
         self._owned_lbl.setToolTip(tr("infobar_owned_tooltip"))
         row.addWidget(self._owned_lbl)
+
+        self._found_lbl.clicked.connect(self.found_clicked)
+        self._all_lbl.clicked.connect(self.all_clicked)
+        self._inactive_lbl.clicked.connect(self.inactive_clicked)
+        self._owned_lbl.clicked.connect(self.owned_clicked)
 
     @staticmethod
     def _sep() -> QFrame:
@@ -207,6 +246,10 @@ class MainWindow(QMainWindow):
 
         # Info bar (GSAK-style, issue #116)
         self._info_bar = InfoBar()
+        self._info_bar.found_clicked.connect(lambda: self._filter_by_status("found"))
+        self._info_bar.all_clicked.connect(lambda: self._filter_by_status("all"))
+        self._info_bar.inactive_clicked.connect(lambda: self._filter_by_status("inactive"))
+        self._info_bar.owned_clicked.connect(lambda: self._filter_by_status("owned"))
         bottom_layout.addWidget(self._info_bar)
 
         # Horisontal splitter — detaljer til venstre, kort til højre
@@ -861,6 +904,40 @@ class MainWindow(QMainWindow):
             inactive=inactive,
             owned=owned,
         )
+
+    def _filter_by_status(self, status: str) -> None:
+        """Klik på et farvet count-felt i info-baren (issue #270).
+
+        Anvender et filter der matcher præcis den status der blev klikket
+        på — ligesom man i GSAK kan klikke på status-tællerne i Count panel
+        for at filtrere cache-listen til den status.
+        """
+        if status == "all":
+            self._clear_filter()
+            return
+
+        from opensak.filters.engine import FoundFilter, AvailabilityFilter, PlacedByFilter
+        fs = FilterSet(mode="AND")
+
+        if status == "found":
+            fs.add(FoundFilter())
+            label = tr("infobar_filter_found")
+        elif status == "owned":
+            s = get_settings()
+            gc_user = (s.gc_username or "").strip()
+            if not gc_user:
+                self._statusbar.showMessage(tr("infobar_owned_no_username"), 5000)
+                return
+            fs.add(PlacedByFilter(gc_user))
+            label = tr("infobar_filter_owned")
+        elif status == "inactive":
+            # Samme definition som i _update_info_bar: archived OR ikke tilgængelig
+            fs.add(AvailabilityFilter(show_avail=False, show_unavail=True, show_archived=True))
+            label = tr("infobar_filter_inactive")
+        else:
+            return
+
+        self._on_filter_applied(fs, self._current_sort, label)
 
     def _build_current_filterset(self) -> FilterSet:
         """Build a FilterSet from the current quick filter + search box."""

@@ -324,21 +324,24 @@ class SizeBarDelegate(QStyledItemDelegate):
 
 
 class GcCodeDelegate(QStyledItemDelegate):
-    """Issue #117: Tegner farvet baggrund i gc_code-kolonnen (GSAK-style).
+    """Issue #117/#270: Tegner farvet baggrund i gc_code-kolonnen (GSAK-style).
 
-    Farve-prioritet (dæmpede pastellfarver, sort tekst):
-      1. Archived / unavailable  → rødlig  (#f5b7b1)
-      2. Placed (brugeren er CO) → gul     (#fdebd0)
-      3. Found                   → grøn    (#a9dfbf)
+    Farve-prioritet (dæmpede pastellfarver, sort tekst — farverne i issue #270
+    er valgt af Allan efter sammenligning med en rigtig GSAK-installation):
+      1. Archived / unavailable  → rødlig  (#f1948a) — delt farve for begge
+      2. Placed (brugeren er CO) → grøn    (#7dcea0)
+      3. Found                   → gul     (#f9e79f)
       4. Not found               → ingen   (standard rækkefarve)
 
     Valg: farvet baggrund frem for farvet tekst giver bedre læsbarhed
-    og matcher GSAK's visuelle stil.
+    og matcher GSAK's visuelle stil. Sort tekst bruges konsekvent på alle
+    statusfarver, inkl. disabled — som tidligere brugte orange tekst på rød
+    baggrund og var næsten ulæseligt (issue #270).
     """
 
-    _COLOR_ARCHIVED = QColor("#f1948a")   # rød
-    _COLOR_PLACED   = QColor("#f9e79f")   # gul
-    _COLOR_FOUND    = QColor("#7dcea0")   # grøn
+    _COLOR_ARCHIVED = QColor("#f1948a")   # rød   — archived OG disabled
+    _COLOR_PLACED   = QColor("#7dcea0")   # grøn  — egne caches
+    _COLOR_FOUND    = QColor("#f9e79f")   # gul   — fundet
 
     def _bg_color(self, index) -> QColor | None:
         """Returnér baggrundsfarve for denne cache, eller None for default."""
@@ -381,15 +384,13 @@ class GcCodeDelegate(QStyledItemDelegate):
 
         cache = index.data(Qt.ItemDataRole.UserRole)
 
-        # Tekstfarve-prioritet:
-        #   Valgt række          → highlightedText (hvid på blå)
-        #   disabled/unavailable → orange
-        #   statusfarve baggrund → sort (pastels er altid lyse, sort er altid læsbart)
-        #   ingen baggrund       → palette.text() (følger light/dark tema)
+        # Tekstfarve-prioritet (issue #270 — sort tekst på alle statusfarver,
+        # inkl. disabled, der tidligere havde næsten ulæselig orange-på-rød):
+        #   Valgt række    → highlightedText (hvid på blå)
+        #   statusfarve bg → sort (pastels er altid lyse, sort er altid læsbart)
+        #   ingen baggrund → palette.text() (følger light/dark tema)
         if is_selected:
             text_color = option.palette.highlightedText().color()
-        elif cache is not None and not cache.available and not cache.archived:
-            text_color = QColor("#e67e22")  # orange for disabled
         elif bg is not None:
             # Statusfarve baggrund (rød/gul/grøn pastel) — sort er altid læsbart
             text_color = QColor(Qt.GlobalColor.black)

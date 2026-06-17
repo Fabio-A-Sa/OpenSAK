@@ -897,10 +897,14 @@ STRINGS: dict[str, str] = {
     "infobar_total":                     "caches in database",
     "infobar_center":                    "Middelpunt",
     "infobar_count_label":               "Aantal:",
-    "infobar_found_tooltip":             "Gevonden caches",
-    "infobar_all_tooltip":               "Alle caches in filter",
-    "infobar_inactive_tooltip":          "Gearchiveerd + Gedeactiveerd",
-    "infobar_owned_tooltip":             "Jouw caches",
+    "infobar_found_tooltip":             "Gevonden caches — klik om te filteren",
+    "infobar_all_tooltip":               "Alle caches in filter — klik om filter te wissen",
+    "infobar_inactive_tooltip":          "Gearchiveerd + Gedeactiveerd — klik om te filteren",
+    "infobar_owned_tooltip":             "Jouw caches — klik om te filteren",
+    "infobar_filter_found":               "Gevonden",
+    "infobar_filter_owned":               "Mijn caches",
+    "infobar_filter_inactive":            "Inactief",
+    "infobar_owned_no_username":          "Stel je Geocaching.com gebruikersnaam in via Instellingen om op eigen caches te filteren",
 
     # ── Appearance / theme ──────────────────────────────────────────────
     "settings_group_appearance":               "Uiterlijk",
