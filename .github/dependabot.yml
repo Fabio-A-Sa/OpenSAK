@@ -1,7 +1,8 @@
 version: 2
 
-# PRs land on the beta branch (the primary development branch); they go through CI
-# and reach main via a beta -> main PR.
+# PRs land on beta (the active development branch). Stable releases on main
+# pick up dependency bumps automatically via the normal beta -> main merge,
+# so no separate target-branch is needed for main.
 
 updates:
   - package-ecosystem: pip
