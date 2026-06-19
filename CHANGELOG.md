@@ -8,6 +8,52 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.14.0-beta.7] — 2026-06-19
+
+> **Beta release** — continuing the 1.14.0 testing period.
+
+### Fixed
+
+- **Filter ignored the "no corrected coordinates" case** (fixes #274) — the
+  filter engine only had a `HasCorrectedFilter`; with no negative
+  counterpart, unchecking "has corrected coordinates" while leaving only
+  "no corrected coordinates" checked in the filter dialog silently produced
+  no filter at all, so unsolved mystery caches weren't excluded as expected.
+  A new `NoCorrectedFilter` was added, mirroring the existing
+  Premium/Non-Premium filter pair.
+
+- **Some owner-placed caches weren't colored or counted correctly**
+  (fixes #272) — caches whose `owner` field came from a GSAK "statistics
+  macro" export (e.g. `Cheminer Will (F=1361 H=54)`) failed to match the
+  configured GC username, because the trailing `(F=N H=N)`-style suffix —
+  and irregular whitespace, including non-breaking spaces — was never
+  stripped before comparing. A new `normalize_geocacher_name()` helper now
+  handles both cases, and is used consistently for the GC Code coloring,
+  the info-bar owned count, and the "owned" filter.
+
+### Changed
+
+- **Owned-cache counting and coloring now use the `owner` field instead of
+  `placed_by`** (issue #270) — matches GSAK's behavior, where an adopted
+  cache (placed by one person, currently owned by another) is attributed to
+  its current owner rather than the original placer. Clicking the
+  "My caches" tile in the info bar now filters by owner as well.
+
+### Added
+
+- **Full log text is now shown without truncation** (fixes #218) — the Logs
+  tab previously cut log text off at a fixed length with "…"; since the log
+  viewer already scrolls, the full text is now always shown.
+
+- **Links in logs are now clickable** (fixes #219) — Markdown-style links
+  (`[text](url)`), as used in Geocaching.com Pocket Query exports, are now
+  converted to real clickable links that open in your system's default
+  browser, matching the existing behavior of the cache description tab.
+  Plain `[square brackets]` not followed by `(url)` are left untouched, and
+  search highlighting in logs continues to work correctly alongside links.
+
+---
+
 ## [1.14.0-beta.6] — 2026-06-18
 
 > **Beta release** — continuing the 1.14.0 testing period.
