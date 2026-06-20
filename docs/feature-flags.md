@@ -30,7 +30,7 @@ bundle, so it is invisible to release users.
 
 ```json
 {
-  "where-filter": true
+  "reverse-geocoding": true
 }
 ```
 
@@ -46,15 +46,15 @@ in `features.json`.
 
 ```bash
 # Enable a flag that is off in features.json
-opensak --feature where-filter=true
+opensak --feature reverse-geocoding=true
 # or
-python run.py --feature where-filter=true
+python run.py --feature reverse-geocoding=true
 
 # Disable a flag that is on in features.json
-opensak --feature where-filter=false
+opensak --feature reverse-geocoding=false
 
 # Override multiple flags at once
-opensak --feature where-filter=true --feature other-flag=false
+opensak --feature reverse-geocoding=true --feature other-flag=false
 ```
 
 Accepted truthy values: `1`, `true`, `yes`, `on` (case-insensitive).  
@@ -71,8 +71,8 @@ Accepted falsy values: `0`, `false`, `no` (case-insensitive).
 
 ```python
 _RELEASE_DEFAULTS: dict[str, bool] = {
-    "where-filter": False,
-    "my-new-flag":  False,   # ← add here
+    "reverse-geocoding": False,
+    "my-new-flag":       False,   # ← add here
 }
 ```
 
@@ -86,8 +86,8 @@ my_new_flag: bool = _flags["my-new-flag"]
 
 ```json
 {
-  "where-filter": true,
-  "my-new-flag":  true
+  "reverse-geocoding": true,
+  "my-new-flag":       true
 }
 ```
 
@@ -109,5 +109,5 @@ if flags.my_new_flag:
 
 | Flag | Default | Description |
 |---|---|---|
-| `where-filter` | `false` | SQL WHERE clause editor in the filter dialog |
 | `update-location` | `false` | Update County / State / Country via offline GeoNames lookup (Waypoint menu, right-click context menu, and auto-geocode on GPX import) |
+| `reverse-geocoding` | `false` | Offline boundary engine for County / State / Country (issue #60) — gates the phased work landing on `beta` |
