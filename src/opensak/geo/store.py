@@ -43,7 +43,7 @@ class BoundaryStore:
     def __init__(self, data_dir: Path | None = None) -> None:
         self.data_dir = data_dir or default_data_dir()
         self._db: sqlite3.Connection | None = None
-        self._packs: dict[str, Any] = {}  # pack filename -> parsed FeatureCollection
+        self._packs: dict[tuple[str, str], Any] = {}  # (layer, pack filename) -> parsed FeatureCollection
 
     @property
     def db_path(self) -> Path:
