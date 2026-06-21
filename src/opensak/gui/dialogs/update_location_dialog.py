@@ -108,11 +108,12 @@ class ReverseGeocodeWorker(QThread):
         def _resolve_one(row: _CacheRow):
             if self._cancel:
                 return None
-            if not hasattr(_tls, "store"):
+            if not hasattr(_tls, "resolver"):
                 s = BoundaryStore()
                 s._packs = _shared_packs
                 _tls.store = s
-            loc = TerritoryResolver(_tls.store).resolve(row.lat, row.lon)
+                _tls.resolver = TerritoryResolver(s)
+            loc = _tls.resolver.resolve(row.lat, row.lon)
             return row, loc
 
         workers = min(4, os.cpu_count() or 1)
