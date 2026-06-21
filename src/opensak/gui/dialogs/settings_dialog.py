@@ -19,7 +19,7 @@ from opensak.gui.settings import get_settings, HomePoint
 from opensak.gui.dialogs.widgets import DirRow
 from opensak.lang import tr, AVAILABLE_LANGUAGES, current_language
 from opensak.coords import FORMATS, format_coords
-from opensak.utils.types import CoordFormat
+from opensak.utils.types import CoordFormat, DateFormat
 
 
 # ── Baggrundstråd til OAuth + API-kald ───────────────────────────────────────
@@ -221,6 +221,17 @@ class SettingsDialog(QDialog):
         coord_fmt_row.addWidget(self._coord_format)
         coord_fmt_row.addStretch()
         disp_layout.addLayout(coord_fmt_row)
+
+        date_fmt_row = QHBoxLayout()
+        date_fmt_row.addWidget(QLabel(tr("settings_date_format_label")))
+        self._date_format = QComboBox()
+        self._date_format.addItem(tr("settings_date_format_locale"), DateFormat.LOCALE)
+        self._date_format.addItem("dd.mm.yyyy", DateFormat.DMY)
+        self._date_format.addItem("mm/dd/yyyy", DateFormat.MDY)
+        self._date_format.addItem("yyyy-mm-dd", DateFormat.YMD)
+        date_fmt_row.addWidget(self._date_format)
+        date_fmt_row.addStretch()
+        disp_layout.addLayout(date_fmt_row)
 
         layout.addWidget(disp_group)
 
@@ -837,6 +848,8 @@ class SettingsDialog(QDialog):
         self._map_provider.setCurrentIndex(idx if idx >= 0 else 0)
         idx = self._coord_format.findData(s.coord_format)
         self._coord_format.setCurrentIndex(idx if idx >= 0 else 0)
+        idx = self._date_format.findData(s.date_format)
+        self._date_format.setCurrentIndex(idx if idx >= 0 else 0)
         lang_idx = self._lang_combo.findData(current_language())
         self._lang_combo.setCurrentIndex(lang_idx if lang_idx >= 0 else 0)
         theme_idx = self._theme_combo.findData(s.theme)
@@ -875,6 +888,7 @@ class SettingsDialog(QDialog):
         s.show_found        = self._found_cb.isChecked()
         s.map_provider      = self._map_provider.currentData()
         s.coord_format      = self._coord_format.currentData()
+        s.date_format       = self._date_format.currentData()
         s.search_min_chars  = self._search_min_chars.value()
         s.search_debounce_ms = self._search_debounce_ms.value()
         new_theme = self._theme_combo.currentData()

@@ -9,7 +9,7 @@ from typing import Optional
 from datetime import datetime
 
 from PySide6.QtCore import (
-    Qt, QAbstractTableModel, QModelIndex, QPersistentModelIndex, Signal, QPoint
+    Qt, QAbstractTableModel, QModelIndex, QPersistentModelIndex, Signal, QPoint, QLocale
 )
 from PySide6.QtGui import QColor, QFont
 from PySide6.QtWidgets import QTableView, QHeaderView, QAbstractItemView, QMenu, QApplication
@@ -19,7 +19,7 @@ from opensak.filters.engine import _haversine_km, haversine_km_batch
 from opensak.gui.settings import get_settings
 from opensak.coords import format_coords, format_lat, format_lon, format_lat, format_lon
 from opensak.lang import tr
-from opensak.utils.types import GcCode
+from opensak.utils.types import DateFormat, GcCode
 from opensak.utils.utils import normalize_geocacher_name
 from opensak.gui.icon_provider import get_cache_type_icon, get_cache_size_icon
 from opensak.gui.dialogs.column_dialog import get_column_widths, set_column_widths
@@ -109,6 +109,21 @@ def get_column_defs() -> dict:
 def _get_active_columns() -> list[str]:
     from opensak.gui.dialogs.column_dialog import get_visible_columns
     return get_visible_columns()
+
+
+def _format_date(d: datetime) -> str:
+    fmt = get_settings().date_format
+    if fmt == DateFormat.DMY:
+        return d.strftime("%d.%m.%Y")
+    if fmt == DateFormat.MDY:
+        return d.strftime("%m/%d/%Y")
+    if fmt == DateFormat.YMD:
+        return d.strftime("%Y-%m-%d")
+    # LOCALE: ask Qt for the OS short-date pattern
+    return QLocale.system().toString(
+        d.date() if hasattr(d, "date") else d,
+        QLocale.FormatType.ShortFormat,
+    )
 
 
 def _gc_sort_key(gc_code: GcCode) -> str:
@@ -698,9 +713,9 @@ class CacheTableModel(QAbstractTableModel):
         if col == "placed_by":
             return cache.placed_by or ""
         if col == "hidden_date":
-            return cache.hidden_date.strftime("%d.%m.%Y") if cache.hidden_date else ""
+            return _format_date(cache.hidden_date) if cache.hidden_date else ""
         if col == "last_log":
-            return cache.last_log_date.strftime("%d.%m.%Y") if cache.last_log_date else ""
+            return _format_date(cache.last_log_date) if cache.last_log_date else ""
         if col == "log_count":
             # Issue #87: use cached log_count column instead of len(cache.logs)
             # because logs are noload'ed for performance and would always be
@@ -732,9 +747,9 @@ class CacheTableModel(QAbstractTableModel):
             return format_lon(lon, fmt)
         # ── Issue #33: GSAK-compatible fields ─────────────────────────────────
         if col == "found_date":
-            return cache.found_date.strftime("%d.%m.%Y") if cache.found_date else ""
+            return _format_date(cache.found_date) if cache.found_date else ""
         if col == "dnf_date":
-            return cache.dnf_date.strftime("%d.%m.%Y") if cache.dnf_date else ""
+            return _format_date(cache.dnf_date) if cache.dnf_date else ""
         if col == "first_to_find":
             return "FTF" if cache.first_to_find else ""
         if col == "favorite_points":
