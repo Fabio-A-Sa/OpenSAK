@@ -227,6 +227,8 @@ STRINGS: dict[str, str] = {
     "settings_map_google":          "Google Maps",
     "settings_map_osm":             "OpenStreetMap",
     "settings_coord_format_label":  "Koordinatformat:",
+    "settings_date_format_label":   "Datumformat:",
+    "settings_date_format_locale":  "OS-språkinställning",
     "settings_group_language":      "Språk",
     "settings_language_label":      "Språk:",
     "settings_language_hint":       "Ändringarna träder i kraft vid nästa omstart",

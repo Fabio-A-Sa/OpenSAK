@@ -230,6 +230,8 @@ STRINGS: dict[str, str] = {
     "settings_map_google":          "Google Maps",
     "settings_map_osm":             "OpenStreetMap",
     "settings_coord_format_label":  "Coördinaatformaat:",
+    "settings_date_format_label":   "Datumformaat:",
+    "settings_date_format_locale":  "OS-landinstelling",
     "settings_group_language":      "Taal",
     "settings_language_label":      "Taal:",
     "settings_language_hint":       "Wijziging wordt van kracht bij volgende herstart",

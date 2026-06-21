@@ -40,6 +40,14 @@ class CoordFormat(StrEnum):
     DMS = "dms"  # N55° 47' 15" E012° 25' 00"
 
 
+class DateFormat(StrEnum):
+    """Supported date display formats for the cache grid."""
+    LOCALE = "locale"  # OS locale short date (e.g. 6/21/25 or 21.06.2026)
+    DMY    = "dmy"     # dd.mm.yyyy
+    MDY    = "mdy"     # mm/dd/yyyy
+    YMD    = "ymd"     # yyyy-mm-dd
+
+
 # (lat, lon) in decimal degrees — WGS-84.
 Coordinate: TypeAlias = tuple[float, float]
 
