@@ -72,6 +72,8 @@ STRINGS: dict[str, str] = {
     "action_settings":              "&Definições…",
     "action_found_update":          "⟳  Atualizar caches encontradas da base de dados de referência…",
     "action_update_location":       "Update waypoint locations…",
+    "action_download_boundaries":   "Transferir pacotes de fronteiras…",
+    "action_check_boundaries":      "Verificar atualizações de dados de fronteiras…",
     "action_gps_export":            "📤  Enviar para GPS…",
 
     # Help menu
@@ -380,6 +382,24 @@ STRINGS: dict[str, str] = {
     "update_loc_row":               "{gc_code}: {country} / {state} / {county}",
     "update_loc_row_error":         "{gc_code}: erro — {msg}",
     "update_loc_row_skipped":       "{gc_code}: ignorado (sem coordenadas)",
+
+    # ── Diálogos de pacotes de fronteiras ─────────────────────────────────────
+    "boundary_dl_title":            "Transferir pacotes de fronteiras",
+    "boundary_dl_info":             "Transfere todos os pacotes de polígonos de concelhos do OpenSAK-Data para cobertura offline completa.",
+    "boundary_dl_start":            "▶  Iniciar transferência",
+    "boundary_dl_running":          "A transferir pacotes… ({done} / {total})",
+    "boundary_dl_done":             "✓ {downloaded} pacote(s) transferido(s).",
+    "boundary_dl_none":             "Todos os pacotes já estão transferidos.",
+    "boundary_dl_cancelled":        "Transferência cancelada.",
+    "boundary_check_title":         "Atualizações de dados de fronteiras",
+    "boundary_check_checking":      "A verificar atualizações de dados de fronteiras…",
+    "boundary_check_uptodate":      "✓ Os dados de fronteiras estão atualizados.",
+    "boundary_check_available":     "Novos dados de fronteiras (versão {version}) estão disponíveis.",
+    "boundary_check_apply":         "Aplicar atualização",
+    "boundary_check_applying":      "A aplicar atualização…",
+    "boundary_check_done":          "✓ Atualização aplicada — {count} ficheiro(s) atualizado(s).",
+    "boundary_check_failed":        "Falha na verificação de atualizações — sem ligação à rede.",
+
     # ── Database dialog ───────────────────────────────────────────────────────
     "db_new_title":                 "Nova base de dados",
     "db_name_label":                "Nome:",

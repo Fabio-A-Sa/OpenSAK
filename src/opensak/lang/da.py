@@ -72,6 +72,8 @@ STRINGS: dict[str, str] = {
     "action_settings":              "&Indstillinger…",
     "action_found_update":          "⟳  Opdater fund fra reference database…",
     "action_update_location":       "Update waypoint locations…",
+    "action_download_boundaries":   "Download grænsefladedata…",
+    "action_check_boundaries":      "Søg efter opdateringer til grænsefladedata…",
     "action_gps_export":            "📤  Send til GPS…",
 
     # Hjælp-menu
@@ -380,6 +382,24 @@ STRINGS: dict[str, str] = {
     "update_loc_row":               "{gc_code}: {country} / {state} / {county}",
     "update_loc_row_error":         "{gc_code}: fejl — {msg}",
     "update_loc_row_skipped":       "{gc_code}: sprunget over (ingen koordinater)",
+
+    # ── Grænsefladedata-dialoger ──────────────────────────────────────────────
+    "boundary_dl_title":            "Download grænsefladedata",
+    "boundary_dl_info":             "Downloader alle kommunale polygonpakker fra OpenSAK-Data for fuld offline-dækning.",
+    "boundary_dl_start":            "▶  Start download",
+    "boundary_dl_running":          "Downloader pakker… ({done} / {total})",
+    "boundary_dl_done":             "✓ {downloaded} pakker downloadet.",
+    "boundary_dl_none":             "Alle pakker er allerede downloadet.",
+    "boundary_dl_cancelled":        "Download annulleret.",
+    "boundary_check_title":         "Opdateringer til grænsefladedata",
+    "boundary_check_checking":      "Søger efter opdateringer til grænsefladedata…",
+    "boundary_check_uptodate":      "✓ Grænsefladedata er opdateret.",
+    "boundary_check_available":     "Ny grænsefladedata (version {version}) er tilgængelig.",
+    "boundary_check_apply":         "Anvend opdatering",
+    "boundary_check_applying":      "Anvender opdatering…",
+    "boundary_check_done":          "✓ Opdatering anvendt — {count} fil(er) opdateret.",
+    "boundary_check_failed":        "Opdateringstjek mislykkedes — ingen netværksforbindelse.",
+
     # ── Database dialog ───────────────────────────────────────────────────────
     "db_new_title":                 "Ny database",
     "db_name_label":                "Navn:",

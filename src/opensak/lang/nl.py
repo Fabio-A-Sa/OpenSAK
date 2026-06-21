@@ -75,6 +75,8 @@ STRINGS: dict[str, str] = {
     "action_settings":              "&Instellingen…",
     "action_found_update":          "⟳  Vondsten bijwerken vanuit referentiedatabase…",
     "action_update_location":       "🌍  Waypointlocaties bijwerken…",
+    "action_download_boundaries":   "Grenspakketten downloaden…",
+    "action_check_boundaries":      "Zoeken naar updates voor grensgegevens…",
     "action_gps_export":            "📤  Naar GPS sturen…",
 
     # Help menu
@@ -383,6 +385,24 @@ STRINGS: dict[str, str] = {
     "update_loc_row":               "{gc_code}: {country} / {state} / {county}",
     "update_loc_row_error":         "{gc_code}: fout — {msg}",
     "update_loc_row_skipped":       "{gc_code}: overgeslagen (geen coördinaten)",
+
+    # ── Grenspakket-dialoogvensters ───────────────────────────────────────────
+    "boundary_dl_title":            "Grenspakketten downloaden",
+    "boundary_dl_info":             "Downloadt alle gemeentelijke polygoonpakketten van OpenSAK-Data voor volledige offline dekking.",
+    "boundary_dl_start":            "▶  Download starten",
+    "boundary_dl_running":          "Pakketten downloaden… ({done} / {total})",
+    "boundary_dl_done":             "✓ {downloaded} pakket(ten) gedownload.",
+    "boundary_dl_none":             "Alle pakketten zijn al gedownload.",
+    "boundary_dl_cancelled":        "Download geannuleerd.",
+    "boundary_check_title":         "Updates voor grensgegevens",
+    "boundary_check_checking":      "Zoeken naar updates voor grensgegevens…",
+    "boundary_check_uptodate":      "✓ Grensgegevens zijn up-to-date.",
+    "boundary_check_available":     "Nieuwe grensgegevens (versie {version}) zijn beschikbaar.",
+    "boundary_check_apply":         "Update toepassen",
+    "boundary_check_applying":      "Update wordt toegepast…",
+    "boundary_check_done":          "✓ Update toegepast — {count} bestand(en) bijgewerkt.",
+    "boundary_check_failed":        "Updatecontrole mislukt — geen netwerkverbinding.",
+
     # ── Database dialog ───────────────────────────────────────────────────────
     "db_new_title":                 "Nieuwe database",
     "db_name_label":                "Naam:",

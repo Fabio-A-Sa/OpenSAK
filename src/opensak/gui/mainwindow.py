@@ -357,6 +357,16 @@ class MainWindow(QMainWindow):
             act_update_location.triggered.connect(self._open_update_location)
             wp_menu.addAction(act_update_location)
 
+            wp_menu.addSeparator()
+
+            act_download_boundaries = QAction(tr("action_download_boundaries"), self)
+            act_download_boundaries.triggered.connect(self._open_download_boundaries)
+            wp_menu.addAction(act_download_boundaries)
+
+            act_check_boundaries = QAction(tr("action_check_boundaries"), self)
+            act_check_boundaries.triggered.connect(self._open_check_boundaries)
+            wp_menu.addAction(act_check_boundaries)
+
         # ── Vis ───────────────────────────────────────────────────────────────
         view_menu = menubar.addMenu(tr("menu_view"))
 
@@ -1798,6 +1808,14 @@ class MainWindow(QMainWindow):
         dlg = UpdateLocationDialog(self)
         dlg.location_updated.connect(self._refresh_cache_list)
         dlg.exec()
+
+    def _open_download_boundaries(self) -> None:
+        from opensak.gui.dialogs.boundary_packs_dialog import BoundaryDownloadDialog
+        BoundaryDownloadDialog(self).exec()
+
+    def _open_check_boundaries(self) -> None:
+        from opensak.gui.dialogs.boundary_packs_dialog import BoundaryCheckDialog
+        BoundaryCheckDialog(self).exec()
 
     def _open_coord_converter(self) -> None:
         """Åbn koordinatkonverter — præ-udfyld med valgt cache hvis mulig."""
