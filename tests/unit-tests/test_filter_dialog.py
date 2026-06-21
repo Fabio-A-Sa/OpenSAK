@@ -384,3 +384,57 @@ class TestApply:
         assert captured == []                       # not emitted
         assert dlg._where_error_label.toPlainText() != ""
         assert not dlg._where_error_label.isHidden()
+
+
+# ── distance unit preference (#327) ─────────────────────────────────────────────
+
+class TestDistanceUnitPref:
+    @pytest.fixture
+    def dlg_mi(self, qtbot, monkeypatch):
+        monkeypatch.setattr(
+            "opensak.gui.settings.get_settings",
+            lambda: SimpleNamespace(home_lat=55.0, home_lon=12.0, use_miles=True),
+        )
+        d = FilterDialog()
+        qtbot.addWidget(d)
+        return d
+
+    def test_suffix_km_by_default(self, dlg):
+        assert dlg._dist_max.suffix() == " km"
+
+    def test_suffix_mi_when_use_miles(self, dlg_mi):
+        assert dlg_mi._dist_max.suffix() == " mi"
+
+    def test_build_converts_mi_to_km(self, dlg_mi):
+        dlg_mi._dist_enabled.setChecked(True)
+        dlg_mi._dist_max.setValue(50.0)
+        fs = dlg_mi._build_filterset()
+        f = next(x for x in fs._filters if getattr(x, "filter_type", None) == "distance")
+        assert abs(f.max_km - 50.0 * 1.60934) < 0.01
+
+    def test_build_km_passthrough(self, dlg):
+        dlg._dist_enabled.setChecked(True)
+        dlg._dist_max.setValue(50.0)
+        fs = dlg._build_filterset()
+        f = next(x for x in fs._filters if getattr(x, "filter_type", None) == "distance")
+        assert abs(f.max_km - 50.0) < 0.01
+
+    def test_load_converts_km_to_mi(self, dlg_mi):
+        fs = FilterSet(mode="AND")
+        fs.add(DistanceFilter(55.0, 12.0, 80.0))
+        dlg_mi._load_filterset(fs)
+        assert abs(dlg_mi._dist_max.value() - 80.0 * 0.621371) < 0.01
+
+    def test_load_km_passthrough(self, dlg):
+        fs = FilterSet(mode="AND")
+        fs.add(DistanceFilter(55.0, 12.0, 25.0))
+        dlg._load_filterset(fs)
+        assert abs(dlg._dist_max.value() - 25.0) < 0.01
+
+    def test_roundtrip_mi(self, dlg_mi):
+        # Enter 50 mi → build → DistanceFilter stores km → load back → should show 50 mi.
+        dlg_mi._dist_enabled.setChecked(True)
+        dlg_mi._dist_max.setValue(50.0)
+        fs = dlg_mi._build_filterset()
+        dlg_mi._load_filterset(fs)
+        assert abs(dlg_mi._dist_max.value() - 50.0) < 0.1

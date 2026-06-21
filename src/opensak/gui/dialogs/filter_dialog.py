@@ -437,7 +437,8 @@ class FilterDialog(QDialog):
         self._dist_max = QDoubleSpinBox()
         self._dist_max.setRange(0.1, 9999.0)
         self._dist_max.setValue(50.0)
-        self._dist_max.setSuffix(" km")
+        from opensak.gui.settings import get_settings as _gs
+        self._dist_max.setSuffix(" mi" if _gs().use_miles else " km")
         self._dist_max.setEnabled(False)
         dist_layout.addWidget(self._dist_max)
         dist_layout.addStretch()
@@ -999,7 +1000,9 @@ class FilterDialog(QDialog):
         if self._dist_enabled.isChecked():
             from opensak.gui.settings import get_settings
             s = get_settings()
-            fs.add(DistanceFilter(s.home_lat, s.home_lon, self._dist_max.value()))
+            dist_val = self._dist_max.value()
+            max_km = dist_val * 1.60934 if s.use_miles else dist_val
+            fs.add(DistanceFilter(s.home_lat, s.home_lon, max_km))
 
         # Premium
         prem_yes = self._prem_yes.isChecked()
@@ -1274,7 +1277,10 @@ class FilterDialog(QDialog):
                 self._archived_cb.setChecked(True)
             elif ftype == "distance":
                 self._dist_enabled.setChecked(True)
-                self._dist_max.setValue(getattr(f, "max_km", 10.0))
+                from opensak.gui.settings import get_settings as _gs
+                saved_km = getattr(f, "max_km", 10.0)
+                display = saved_km * 0.621371 if _gs().use_miles else saved_km
+                self._dist_max.setValue(display)
             elif ftype == "premium":
                 self._prem_yes.setChecked(True)
                 self._prem_no.setChecked(False)
