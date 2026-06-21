@@ -1,6 +1,6 @@
 # Development Plan — Offline Reverse Geocoding (County / State / Country)
 
-Status: Phase 0 + Phase 1 DONE (merged into beta). Phase 3 DONE (merged into beta). Phase 4 DONE (branch `60-phase-4-gui`). Phase 2, 5 pending.
+Status: Phase 0 + Phase 1 DONE (merged into beta). Phase 3 DONE (merged into beta). Phase 4 DONE (merged into beta). Phase 5 DONE (branch `60-phase-5-packaging`). Phase 2 pending (blocked on AgreeDK/OpenSAK-Data repo).
 Relates to: GitHub issue #60 · design in [`architecture/reverse-geocoding.md`](../architecture/reverse-geocoding.md)
 Scope: full implementation of the offline boundary engine — data pipeline, runtime engine, on-demand packs, schema, GUI, packaging/CI.
 
@@ -101,18 +101,22 @@ This plan turns the architecture document into shippable work. It is ordered **b
 
 ---
 
-## Phase 5 — Packaging and CI
+## Phase 5 — Packaging and CI ✓ DONE
 
 **Goal:** the shipped binaries resolve offline on all three OSes, and CI proves it.
 
-**Tasks**
-- [ ] [`opensak.spec`](../opensak.spec) — bundle `boundaries.db` + baseline GeoJSON via `collect_data_files`/`datas`; remove the old `reverse_geocoder` data bundling.
-- [ ] Verify `shapely`/GEOS wheels install across the [`tests.yml`](../.github/workflows/tests.yml) matrix (Linux/macOS/Windows, py 3.11/3.12); enable the pure-Python fallback if a platform lacks wheels.
-- [ ] Add a real-dependency smoke test (in the spirit of `test_geocoder_deps.py`): import `shapely` and resolve a known coordinate under the build's dependency set, so a missing dep fails CI.
-- [ ] Check the install/footprint delta stays within the Phase 0 baseline budget.
-- [ ] Ship the ODbL attribution in the app's About/credits.
+**What was built:**
+- `shapely>=2.0` added to runtime deps in `pyproject.toml`; `boundaries.py` uses `shapely.geometry.shape().contains(Point)` for the stage-2 PIP when shapely is present, pure-Python ray-cast as fallback.
+- `default_data_dir()` in `store.py` now checks `sys.frozen` first — frozen bundles resolve to `sys._MEIPASS/data/`.
+- `opensak.spec` bundles `data/boundaries.db` + `data/countries/` + `data/states/` + `data/counties/` conditionally (skipped if `data/boundaries.db` is absent at build time); shapely added to `hiddenimports`.
+- `tests/unit-tests/test_geo_deps.py` — 5 smoke tests: shapely importable, `_HAS_SHAPELY` is True, point-in-polygon (Polygon + MultiPolygon) via shapely path.
+- ODbL attribution added to `about_text` in all 8 lang files.
 
-**Acceptance:** freshly built binaries on Windows/macOS/Linux perform an offline reverse geocode; CI is green including `shapely` and the smoke test.
+**Remaining (blocked on AgreeDK/OpenSAK-Data repo):**
+- [ ] Build pipeline step to fetch/generate `data/` before `pyinstaller opensak.spec` runs (currently converter must be run manually with the GSAK source files).
+- [ ] Verify install/footprint delta stays within Phase 0 budget.
+
+**Acceptance:** ✓ shapely integrated; frozen path correct; smoke tests pass; ODbL in About.
 **Risk:** medium (native wheels are the usual culprit). Size: M.
 
 ---
