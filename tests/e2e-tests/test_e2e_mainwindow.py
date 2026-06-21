@@ -437,13 +437,39 @@ class TestWaypoints:
             "opensak.gui.dialogs.waypoint_dialog.WaypointDialog",
             fake_dialog(exec_result=1, data=_wp_data("GC12345")))
         seeded_window._edit_waypoint_from_cache(cache)
+        updated = seeded_window._load_full_cache("GC12345")
+        assert updated.name == "New WP"
 
     def test_edit_waypoint_from_cache_cancelled(self, seeded_window, monkeypatch):
         cache = seeded_window._load_full_cache("GC12345")
+        before = cache.name
         monkeypatch.setattr(
             "opensak.gui.dialogs.waypoint_dialog.WaypointDialog",
             fake_dialog(exec_result=0))
         seeded_window._edit_waypoint_from_cache(cache)
+        assert seeded_window._load_full_cache("GC12345").name == before
+
+    def test_edit_waypoint_from_cache_with_deferred_fields(self, seeded_window, monkeypatch):
+        """Regression test: apply_filters() (used by the grid/_refresh_cache_list)
+        defer()'s short_description/long_description/encoded_hints for performance.
+        A cache object coming straight from that query -- exactly what the grid
+        passes to Edit Cache via right-click or the menu -- must not blow up with
+        DetachedInstanceError when the dialog opens (_edit_waypoint_from_cache
+        must reload a full copy first; see _load_full_cache()).
+        """
+        from opensak.db.database import get_session
+        from opensak.filters.engine import apply_filters, FilterSet
+        from opensak.gui.dialogs import waypoint_dialog as wpd
+
+        with get_session() as session:
+            caches = apply_filters(session, FilterSet())
+        row_cache = next(c for c in caches if c.gc_code == "GC12345")
+        # Session is now closed -- row_cache's text fields are still deferred.
+
+        # Real __init__ / _populate() must run (that's what crashed before the
+        # fix); only stub exec() so the modal dialog doesn't block the test.
+        monkeypatch.setattr(wpd.WaypointDialog, "exec", lambda self: 0)
+        seeded_window._edit_waypoint_from_cache(row_cache)  # must not raise
 
     def test_delete_waypoint_no_selection(self, seeded_window):
         seeded_window._cache_table.clearSelection()

@@ -1304,7 +1304,18 @@ class MainWindow(QMainWindow):
         from opensak.gui.dialogs.waypoint_dialog import WaypointDialog
         from opensak.db.database import get_session
         from opensak.db.models import Cache
-        dlg = WaypointDialog(self, cache=cache)
+
+        # apply_filters() defer()'er short_description/long_description/
+        # encoded_hints i listevisningen (ydelse på store DB'er). Cache-objektet
+        # fra tabel-rækken kan derfor IKKE bruges direkte her — _populate() ville
+        # udløse et forsinket load på en allerede lukket session og kaste
+        # DetachedInstanceError. Genindlæs altid en komplet kopi først,
+        # samme mønster som _on_cache_selected()/_load_full_cache().
+        full_cache = self._load_full_cache(cache.gc_code)
+        if not full_cache:
+            return
+
+        dlg = WaypointDialog(self, cache=full_cache)
         if dlg.exec():
             data = dlg.get_data()
             with get_session() as session:
