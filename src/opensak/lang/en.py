@@ -72,6 +72,8 @@ STRINGS: dict[str, str] = {
     "action_settings":              "&Settings…",
     "action_found_update":          "⟳  Update finds from reference database…",
     "action_update_location":       "🌍  Update waypoint locations…",
+    "action_download_boundaries":   "Download boundary packs…",
+    "action_check_boundaries":      "Check for boundary data updates…",
     "action_gps_export":            "📤  Send to GPS…",
 
     # Help menu
@@ -380,6 +382,23 @@ STRINGS: dict[str, str] = {
     "update_loc_row":               "{gc_code}: {country} / {state} / {county}",
     "update_loc_row_error":         "{gc_code}: error — {msg}",
     "update_loc_row_skipped":       "{gc_code}: skipped (no coordinates)",
+
+    # ── Boundary packs dialogs ────────────────────────────────────────────────
+    "boundary_dl_title":            "Download Boundary Packs",
+    "boundary_dl_info":             "Downloads all county polygon packs from OpenSAK-Data for full offline coverage.",
+    "boundary_dl_start":            "▶  Start download",
+    "boundary_dl_running":          "Downloading packs… ({done} / {total})",
+    "boundary_dl_done":             "✓ {downloaded} packs downloaded.",
+    "boundary_dl_none":             "All packs are already downloaded.",
+    "boundary_dl_cancelled":        "Download cancelled.",
+    "boundary_check_title":         "Boundary Data Updates",
+    "boundary_check_checking":      "Checking for boundary data updates…",
+    "boundary_check_uptodate":      "✓ Boundary data is up to date.",
+    "boundary_check_available":     "New boundary data (version {version}) is available.",
+    "boundary_check_apply":         "Apply update",
+    "boundary_check_applying":      "Applying update…",
+    "boundary_check_done":          "✓ Update applied — {count} file(s) updated.",
+    "boundary_check_failed":        "Update check failed — no network connection.",
 
     # ── Database dialog ───────────────────────────────────────────────────────
     "db_new_title":                 "New database",

@@ -72,6 +72,8 @@ STRINGS: dict[str, str] = {
     "action_settings":              "&Paramètres…",
     "action_found_update":          "⟳  Mettre à jour les caches trouvées depuis la base de données de référence…",
     "action_update_location":       "Update waypoint locations…",
+    "action_download_boundaries":   "Télécharger les packs de frontières…",
+    "action_check_boundaries":      "Rechercher des mises à jour des données de frontières…",
     "action_gps_export":            "📤  Envoyer au GPS…",
 
     # Help menu
@@ -380,6 +382,24 @@ STRINGS: dict[str, str] = {
     "update_loc_row":               "{gc_code} : {country} / {state} / {county}",
     "update_loc_row_error":         "{gc_code} : erreur — {msg}",
     "update_loc_row_skipped":       "{gc_code} : ignoré (pas de coordonnées)",
+
+    # ── Boîtes de dialogue packs de frontières ────────────────────────────────
+    "boundary_dl_title":            "Télécharger les packs de frontières",
+    "boundary_dl_info":             "Télécharge tous les packs de polygones de comtés depuis OpenSAK-Data pour une couverture hors ligne complète.",
+    "boundary_dl_start":            "▶  Lancer le téléchargement",
+    "boundary_dl_running":          "Téléchargement des packs… ({done} / {total})",
+    "boundary_dl_done":             "✓ {downloaded} pack(s) téléchargé(s).",
+    "boundary_dl_none":             "Tous les packs sont déjà téléchargés.",
+    "boundary_dl_cancelled":        "Téléchargement annulé.",
+    "boundary_check_title":         "Mises à jour des données de frontières",
+    "boundary_check_checking":      "Recherche de mises à jour des données de frontières…",
+    "boundary_check_uptodate":      "✓ Les données de frontières sont à jour.",
+    "boundary_check_available":     "De nouvelles données de frontières (version {version}) sont disponibles.",
+    "boundary_check_apply":         "Appliquer la mise à jour",
+    "boundary_check_applying":      "Application de la mise à jour…",
+    "boundary_check_done":          "✓ Mise à jour appliquée — {count} fichier(s) mis à jour.",
+    "boundary_check_failed":        "Échec de la vérification des mises à jour — pas de connexion réseau.",
+
     # ── Database dialog ───────────────────────────────────────────────────────
     "db_new_title":                 "Nouvelle base de données",
     "db_name_label":                "Nom:",

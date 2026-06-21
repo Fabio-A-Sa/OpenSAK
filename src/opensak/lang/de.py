@@ -72,6 +72,8 @@ STRINGS: dict[str, str] = {
     "action_settings":              "&Einstellungen…",
     "action_found_update":          "⟳  Funde aus Referenz-Datenbank aktualisieren",
     "action_update_location":       "Update waypoint locations…",
+    "action_download_boundaries":   "Grenzpolygon-Pakete herunterladen…",
+    "action_check_boundaries":      "Nach Grenzpolygon-Aktualisierungen suchen…",
     "action_gps_export":            "📤  An GPS senden…",
 
     # Help menu
@@ -380,6 +382,24 @@ STRINGS: dict[str, str] = {
     "update_loc_row":               "{gc_code}: {country} / {state} / {county}",
     "update_loc_row_error":         "{gc_code}: Fehler — {msg}",
     "update_loc_row_skipped":       "{gc_code}: übersprungen (keine Koordinaten)",
+
+    # ── Grenzpolygon-Dialoge ──────────────────────────────────────────────────
+    "boundary_dl_title":            "Grenzpolygon-Pakete herunterladen",
+    "boundary_dl_info":             "Lädt alle Kreispolygon-Pakete von OpenSAK-Data für vollständige Offline-Abdeckung herunter.",
+    "boundary_dl_start":            "▶  Download starten",
+    "boundary_dl_running":          "Pakete werden heruntergeladen… ({done} / {total})",
+    "boundary_dl_done":             "✓ {downloaded} Pakete heruntergeladen.",
+    "boundary_dl_none":             "Alle Pakete sind bereits heruntergeladen.",
+    "boundary_dl_cancelled":        "Download abgebrochen.",
+    "boundary_check_title":         "Grenzpolygon-Aktualisierungen",
+    "boundary_check_checking":      "Suche nach Grenzpolygon-Aktualisierungen…",
+    "boundary_check_uptodate":      "✓ Grenzpolygon-Daten sind aktuell.",
+    "boundary_check_available":     "Neue Grenzpolygon-Daten (Version {version}) sind verfügbar.",
+    "boundary_check_apply":         "Aktualisierung anwenden",
+    "boundary_check_applying":      "Aktualisierung wird angewendet…",
+    "boundary_check_done":          "✓ Aktualisierung angewendet — {count} Datei(en) aktualisiert.",
+    "boundary_check_failed":        "Aktualisierungsprüfung fehlgeschlagen — keine Netzwerkverbindung.",
+
     # ── Database dialog ───────────────────────────────────────────────────────
     "db_new_title":                 "Neue Datenbank",
     "db_name_label":                "Name:",

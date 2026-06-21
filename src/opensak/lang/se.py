@@ -72,6 +72,8 @@ STRINGS: dict[str, str] = {
     "action_settings":              "&Inställningar…",
     "action_found_update":          "⟳  Uppdatera hittade från referensdatabasen…",
     "action_update_location":       "Update waypoint locations…",
+    "action_download_boundaries":   "Ladda ner gränspaket…",
+    "action_check_boundaries":      "Sök efter uppdateringar av gränsdata…",
     "action_gps_export":            "📤  Skicka till GPS…",
 
     # Help menu
@@ -380,6 +382,24 @@ STRINGS: dict[str, str] = {
     "update_loc_row":               "{gc_code}: {country} / {state} / {county}",
     "update_loc_row_error":         "{gc_code}: fel — {msg}",
     "update_loc_row_skipped":       "{gc_code}: hoppades över (inga koordinater)",
+
+    # ── Gränspaket-dialoger ───────────────────────────────────────────────────
+    "boundary_dl_title":            "Ladda ner gränspaket",
+    "boundary_dl_info":             "Laddar ner alla kommungräns-polygonpaket från OpenSAK-Data för fullständig offline-täckning.",
+    "boundary_dl_start":            "▶  Starta nedladdning",
+    "boundary_dl_running":          "Laddar ner paket… ({done} / {total})",
+    "boundary_dl_done":             "✓ {downloaded} paket nedladdade.",
+    "boundary_dl_none":             "Alla paket är redan nedladdade.",
+    "boundary_dl_cancelled":        "Nedladdning avbruten.",
+    "boundary_check_title":         "Uppdateringar av gränsdata",
+    "boundary_check_checking":      "Söker efter uppdateringar av gränsdata…",
+    "boundary_check_uptodate":      "✓ Gränsdata är uppdaterad.",
+    "boundary_check_available":     "Ny gränsdata (version {version}) är tillgänglig.",
+    "boundary_check_apply":         "Tillämpa uppdatering",
+    "boundary_check_applying":      "Tillämpar uppdatering…",
+    "boundary_check_done":          "✓ Uppdatering tillämpad — {count} fil(er) uppdaterade.",
+    "boundary_check_failed":        "Uppdateringskontroll misslyckades — ingen nätverksanslutning.",
+
     # ── Database dialog ───────────────────────────────────────────────────────
     "db_new_title":                 "Ny databas",
     "db_name_label":                "Namn:",
