@@ -224,8 +224,7 @@ STRINGS: dict[str, str] = {
     "settings_group_display":       "Visning",
     "settings_use_miles":           "Vis afstande i miles (i stedet for km)",
     "settings_unit_label":          "Enheder:",
-    "settings_unit_km":             "KM",
-    "settings_unit_mi":             "MI",
+
     "settings_map_label":           "Kortapp:",
     "settings_map_google":          "Google Maps",
     "settings_map_osm":             "OpenStreetMap",
