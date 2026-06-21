@@ -95,15 +95,23 @@ class ReverseGeocodeWorker(QThread):
         check.close()
         now = datetime.now(timezone.utc)
 
-        # Phase 1 — parallel resolve (one BoundaryStore per thread, reused across rows)
+        # Phase 1 — parallel resolve.
+        # _shared_packs is injected into every thread's BoundaryStore so GeoJSON
+        # packs are loaded from disk at most once across all threads. Each thread
+        # still gets its own SQLite connection (not thread-safe to share). Dict
+        # writes under the GIL are atomic; the only race is two threads loading
+        # the same missing pack simultaneously — harmless, second write wins.
         import threading
+        _shared_packs: dict = {}
         _tls = threading.local()
 
         def _resolve_one(row: _CacheRow):
             if self._cancel:
                 return None
             if not hasattr(_tls, "store"):
-                _tls.store = BoundaryStore()
+                s = BoundaryStore()
+                s._packs = _shared_packs
+                _tls.store = s
             loc = TerritoryResolver(_tls.store).resolve(row.lat, row.lon)
             return row, loc
 
