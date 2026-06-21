@@ -298,10 +298,10 @@ class CacheDetailPanel(QWidget):
                     "NOPQRSTUVWXYZABCDEFGHIJKLMnopqrstuvwxyzabcdefghijklm"
                 )
             )
-            self._hint_browser.setPlainText(decoded)
+            self._hint_browser.setPlainText(decoded if decoded else tr("detail_no_hint"))
             self._decode_btn.setText(tr("detail_encode_btn"))
         else:
-            self._hint_browser.setPlainText(self._raw_hint)
+            self._hint_browser.setPlainText(self._raw_hint if self._raw_hint else tr("detail_no_hint"))
             self._decode_btn.setText(tr("detail_decode_btn"))
 
     def _format_coords(self, lat: float, lon: float) -> str:

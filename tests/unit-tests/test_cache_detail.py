@@ -8,6 +8,7 @@ import pytest
 pytest.importorskip("pytestqt")
 
 from opensak.gui import cache_detail as cd
+from opensak.gui.cache_detail import CacheDetailPanel
 from opensak.utils.types import DateFormat
 
 
@@ -25,3 +26,17 @@ def test_format_date_respects_settings(monkeypatch, qapp, fmt, expected):
     monkeypatch.setattr(cd, "get_settings", lambda: _fake_settings(fmt))
     result = cd._format_date(datetime(2024, 12, 25))
     assert result == expected
+
+
+def test_decode_no_hint_shows_no_hint_label(qapp):
+    # Regression for #324: decoding a cache with no hint showed an empty text
+    # browser instead of keeping the "(no hint)" feedback visible.
+    panel = CacheDetailPanel()
+    panel._raw_hint = ""
+    panel._hint_decoded = False
+
+    panel._toggle_hint_decode()  # decode
+    assert panel._hint_browser.toPlainText() != ""
+
+    panel._toggle_hint_decode()  # encode back
+    assert panel._hint_browser.toPlainText() != ""
