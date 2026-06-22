@@ -318,7 +318,7 @@ class CacheDetailPanel(QWidget):
         settings = get_settings()
         app = settings.map_provider
         lat, lon = self._current_lat, self._current_lon
-        if app == "googlemaps":
+        if app == "google":
             webbrowser.open(f"https://www.google.com/maps?q={lat},{lon}")
         else:
             webbrowser.open(f"https://www.openstreetmap.org/?mlat={lat}&mlon={lon}&zoom=15")
@@ -329,7 +329,7 @@ class CacheDetailPanel(QWidget):
         settings = get_settings()
         app = settings.map_provider
         lat, lon = self._corrected_lat, self._corrected_lon
-        if app == "googlemaps":
+        if app == "google":
             webbrowser.open(f"https://www.google.com/maps?q={lat},{lon}")
         else:
             webbrowser.open(f"https://www.openstreetmap.org/?mlat={lat}&mlon={lon}&zoom=15")
