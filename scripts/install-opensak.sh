@@ -1,8 +1,7 @@
 #!/bin/bash
 # ==============================================================
 # OpenSAK — Linux installationsscript
-# Testet på: Ubuntu 20.04+, Linux Mint 20+, Debian 11+, openSUSE 
-#   Tumbleweed
+# Testet på: Ubuntu 20.04+, Linux Mint 20+, Debian 11+, openSUSE Tumbleweed
 #
 # Brug:
 #   chmod +x install-opensak.sh
@@ -55,13 +54,12 @@ MANGLER=()
 
 if ! command -v python3 &>/dev/null; then MANGLER+=("python3"); fi
 if ! command -v git &>/dev/null; then MANGLER+=("git"); fi
+if ! python3 -c "import venv" &>/dev/null 2>&1; then MANGLER+=("python3-venv"); fi
 if $DEBIAN &>/dev/null; then
 	if ! dpkg -l libxcb-cursor0 &>/dev/null 2>&1; then MANGLER+=("libxcb-cursor0"); fi
-	if ! dpkg -l python3-venv &>/dev/null 2>&1; then MANGLER+=("python3-venv"); fi
 	if ! dpkg -l python3-pip &>/dev/null 2>&1; then MANGLER+=("python3-pip"); fi
 elif $SUSE &>/dev/null; then
 	if ! rpm -q libxcb-cursor0 &>/dev/null 2>&1; then MANGLER+=("libxcb-cursor0"); fi
-	if ! rpm -q python3-virtualenv &>/dev/null 2>&1; then MANGLER+=("python3-virtualenv"); fi
 	if ! rpm -q python3-pip &>/dev/null 2>&1; then MANGLER+=("python3-pip"); fi
 fi
 
@@ -214,7 +212,7 @@ if [ -n "$SKRIVEBORD" ] && [[ "$SVAR" =~ ^[JjYy]$ ]]; then
 echo "  Start fra skrivebordet: Dobbeltklik på OpenSAK ikonet"
 fi
 echo ""
-echo "  Opdater til ny version: cd ~/opensak && git pull && pip install -r requirements.txt"
+echo "  Opdater til ny version: cd ~/opensak && git pull && pip install -e ."
 echo ""
 echo "  Fejl og forslag:        https://github.com/AgreeDK/opensak/issues"
 echo ""
