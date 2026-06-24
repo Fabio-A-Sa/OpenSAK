@@ -40,9 +40,9 @@ If the tag does not exist the app exits with an error.
 Both flags can be used together:
 
 ```bash
-opensak --version=1.11.15 --feature db-combo=true
+opensak --version=1.11.15 --feature reverse-geocoding=true
 # or
-python run.py --version=1.11.15 --feature db-combo=true
+python run.py --version=1.11.15 --feature reverse-geocoding=true
 ```
 
 `--feature` overrides are forwarded to the subprocess, so they apply to the
