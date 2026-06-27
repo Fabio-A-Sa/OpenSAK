@@ -62,7 +62,7 @@ _migrated_paths: set = set()  # undgår at køre migrationer to gange på samme 
 # bumped to the highest migration number whenever a new migration is added
 # below — _run_migrations() skips the whole block when the database already
 # reports this version, so a stale constant means new migrations never run.
-SCHEMA_VERSION = 12
+SCHEMA_VERSION = 13
 
 
 def init_db(db_path: Path | None = None) -> Engine:
@@ -415,6 +415,27 @@ def _run_migrations(engine: Engine) -> None:
         if added:
             conn.commit()
             print(f"Migration: tilføjede provenance-kolonner til caches: {', '.join(added)}")
+
+        # ── Migration 13: parent_gc_code on waypoints (issue #376) ───────────
+        # Stores the parent cache's GC code directly on the waypoint row —
+        # mirrors cParent in GSAK and enables JOIN-free filter queries.
+        existing_wpts = [
+            row[1]
+            for row in conn.execute(text("PRAGMA table_info(waypoints)")).fetchall()
+        ]
+        if "parent_gc_code" not in existing_wpts:
+            conn.execute(text(
+                "ALTER TABLE waypoints ADD COLUMN parent_gc_code VARCHAR(16)"
+            ))
+            # Back-fill from the caches table via the existing FK.
+            conn.execute(text("""
+                UPDATE waypoints
+                SET parent_gc_code = (
+                    SELECT gc_code FROM caches WHERE caches.id = waypoints.cache_id
+                )
+            """))
+            conn.commit()
+            print("Migration: tilføjede waypoints.parent_gc_code")
 
         # ── Stamp the schema version so the next launch skips the probes ─────
         # PRAGMA does not accept bind parameters; SCHEMA_VERSION is a trusted
