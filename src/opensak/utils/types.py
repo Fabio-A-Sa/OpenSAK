@@ -63,9 +63,9 @@ def norm_locale_date_fmt(raw: str) -> str:
 
 class TextSize(StrEnum):
     """Text and icon sizes for UI elements (issue #286/#288/#290)."""
-    SMALL  = "small"   # Kompakt: 6/11/9 pt
+    SMALL  = "small"   # Kompakt: 5/9/8 pt
     MEDIUM = "medium"  # Standard: 7/13/10 pt (default)
-    LARGE  = "large"   # Stor: 9/15/12 pt
+    LARGE  = "large"   # Stor: 10/18/14 pt
 
 
 # Font sizes (pt) for each TextSize level. Maps to:
@@ -73,9 +73,9 @@ class TextSize(StrEnum):
 #   label_pt (info label in detail panel)
 #   secondary_pt (corrected coords, hints label)
 TEXT_SIZE_MAP = {
-    TextSize.SMALL:  {"icon": 6, "label": 11, "secondary": 9},
+    TextSize.SMALL:  {"icon": 5, "label": 9,  "secondary": 8},
     TextSize.MEDIUM: {"icon": 7, "label": 13, "secondary": 10},
-    TextSize.LARGE:  {"icon": 9, "label": 15, "secondary": 12},
+    TextSize.LARGE:  {"icon": 10, "label": 18, "secondary": 14},
 }
 
 
