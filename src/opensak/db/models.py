@@ -197,6 +197,9 @@ class Waypoint(Base):
     latitude: Mapped[Optional[float]] = mapped_column(Float)   # None = coordinates not yet known
     longitude: Mapped[Optional[float]] = mapped_column(Float)
 
+    # GC code of the parent cache (issue #376 — mirrors cParent in GSAK)
+    parent_gc_code: Mapped[Optional[str]] = mapped_column(String(16), nullable=True, index=True)
+
     # Relationships
     cache: Mapped["Cache"] = relationship("Cache", back_populates="waypoints")
 
