@@ -1073,23 +1073,24 @@ def _link_extra_waypoints(
         return 0
 
     # Build an ends-with index: for each suffix length present, map the cache's
-    # trailing chars of that length → cache_id (first match wins, matching the
-    # old .first() semantics).
+    # trailing chars of that length → (cache_id, gc_code).
     lengths = {len(s) for s in extra if s}
-    tail_index: dict[int, dict[str, int]] = {n: {} for n in lengths}
+    tail_index: dict[int, dict[str, tuple[int, str]]] = {n: {} for n in lengths}
     for cid, gc in session.query(Cache.id, Cache.gc_code):
         if not gc:
             continue
         for n in lengths:
             if len(gc) >= n:
-                tail_index[n].setdefault(gc[-n:], cid)
+                tail_index[n].setdefault(gc[-n:], (cid, gc))
 
-    # Resolve each suffix to a cache_id once.
+    # Resolve each suffix to a (cache_id, gc_code) pair once.
     resolved: dict[str, int] = {}
+    resolved_gc: dict[str, str] = {}
     for suffix in extra:
-        cid = tail_index.get(len(suffix), {}).get(suffix)
-        if cid is not None:
-            resolved[suffix] = cid
+        pair = tail_index.get(len(suffix), {}).get(suffix)
+        if pair is not None:
+            resolved[suffix] = pair[0]
+            resolved_gc[suffix] = pair[1]
 
     if not resolved:
         return 0
@@ -1108,9 +1109,11 @@ def _link_extra_waypoints(
         cache_id = resolved.get(suffix)
         if cache_id is None:
             continue
+        parent_gc = resolved_gc.get(suffix)
         for wp in wpts:
             session.add(Waypoint(
                 cache_id=cache_id,
+                parent_gc_code=parent_gc,
                 prefix=wp["prefix"],
                 wp_type=wp["wp_type"],
                 name=wp["name"],
