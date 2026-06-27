@@ -6,6 +6,7 @@ function signatures are self-documenting and the type checker can enforce
 valid values at call sites (instead of accepting any string).
 """
 
+import re
 from enum import Enum, IntEnum, StrEnum, auto
 from typing import TypeAlias
 
@@ -42,10 +43,22 @@ class CoordFormat(StrEnum):
 
 class DateFormat(StrEnum):
     """Supported date display formats for the cache grid."""
-    LOCALE = "locale"  # OS locale short date (e.g. 6/21/25 or 21.06.2026)
+    LOCALE = "locale"  # OS locale short date (e.g. 06/23/2026 or 23.06.2026)
     DMY    = "dmy"     # dd.mm.yyyy
     MDY    = "mdy"     # mm/dd/yyyy
     YMD    = "ymd"     # yyyy-mm-dd
+
+
+def norm_locale_date_fmt(raw: str) -> str:
+    """Normalise a Qt locale short-date format string.
+
+    Ensures zero-padded fields and a 4-digit year while preserving the
+    locale's field order and separator characters.
+    """
+    fmt = re.sub(r'(?<!d)d(?!d)', 'dd', raw)
+    fmt = re.sub(r'(?<!M)M(?!M)', 'MM', fmt)
+    fmt = re.sub(r'(?<!y)yy(?!y)', 'yyyy', fmt)
+    return fmt
 
 
 class TextSize(StrEnum):
