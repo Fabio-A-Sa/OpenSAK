@@ -227,6 +227,18 @@ class TestCacheList:
     def test_update_info_bar(self, seeded_window):
         seeded_window._update_info_bar()
 
+    def test_infobar_shows_filter_count(self, seeded_window):
+        # regression for #373: infobar must show count, not generic "Active"
+        from opensak.filters.engine import FilterSet, GcCodeFilter, CacheTypeFilter
+        fs = FilterSet(mode="AND")
+        fs.add(GcCodeFilter("GC12345"))
+        fs.add(CacheTypeFilter(["Traditional Cache"]))
+        seeded_window._current_filterset = fs
+        seeded_window._update_info_bar()
+        text = seeded_window._info_bar._filter_lbl.text()
+        assert "2" in text
+        assert "Active" not in text and "Aktiv" not in text
+
     def test_update_info_bar_with_owner(self, seeded_window, iso_settings):
         from opensak.gui.settings import get_settings
         get_settings().gc_username = "TestOwner"
