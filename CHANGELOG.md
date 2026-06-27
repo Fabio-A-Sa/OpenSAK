@@ -8,6 +8,43 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.14.0-beta.14] — 2026-06-27
+
+> **Beta release** — continuing the 1.14.0 testing period.
+
+### Fixed
+
+- **Website never actually redeployed on a beta release** — `deploy-site.yml`
+  listened for `release: published`, but `build.yml` creates that release
+  using `secrets.GITHUB_TOKEN` (via `softprops/action-gh-release`), and
+  GitHub's anti-recursion rule means events produced *by* `GITHUB_TOKEN`
+  never trigger other workflows in the same repo. So that trigger had
+  silently never fired for a single beta release — the June 25 fix to pin
+  the checkout ref corrected *what* would be deployed if it ran, but not
+  *whether* it ran at all. This is why opensak.com was still showing
+  beta.12 after beta.13 shipped. The workflow now also triggers directly
+  on the release tag push (`push: tags: ["v*"]`), which is a normal,
+  non-`GITHUB_TOKEN` push and fires like any other.
+
+- **Two copies of the User Guide could silently drift apart** (root cause
+  of the beta.12 Facebook report, and the reason beta.13's fix needed a
+  second pass) — `docs/opensak-user-guide.html`, `docs/CNAME`, and
+  `docs/assets/screenshots/` were leftover duplicates from when GitHub
+  Pages deployed from the `/docs` folder on `main`, before the switch to
+  Actions-based deployment from `site/`. Nothing referenced them — not
+  code, not the build, not even README — so they only ever got updated by
+  hand, and were forgotten as often as not. All three are now removed;
+  `site/user-guide.html` is the single source of truth, and a regression
+  test (`test_no_duplicate_user_guide_copy`) fails loudly if a synced
+  `docs/` copy ever reappears.
+
+### Notes
+
+- No app-facing change for end users — this release exists purely to fix
+  opensak.com and the release pipeline behind it.
+
+---
+
 ## [1.14.0-beta.13] — 2026-06-27
 
 > **Beta release** — continuing the 1.14.0 testing period.
