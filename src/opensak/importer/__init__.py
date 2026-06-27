@@ -529,11 +529,13 @@ def _insert_extra_wpts(session: Session, extra_wpts: list, commit_every: int = 5
     ``DELETE ... WHERE cache_id IN (...)`` rather than one fetch-sync DELETE per
     suffix. Commits to disk every *commit_every* caches to keep RAM flat.
     """
-    # Build suffix→cache_id once (suffix == gc_code without the 2-char prefix).
+    # Build suffix→cache_id and suffix→gc_code once.
     suffix_to_cache_id: dict[str, int] = {}
+    suffix_to_gc_code: dict[str, str] = {}
     for cache_id, gc_code in session.query(Cache.id, Cache.gc_code):
         if gc_code and len(gc_code) > 2:
             suffix_to_cache_id[gc_code[2:]] = cache_id
+            suffix_to_gc_code[gc_code[2:]] = gc_code
 
     # Group waypoints per suffix.
     wpts_by_suffix: dict[str, list] = {}
@@ -559,9 +561,11 @@ def _insert_extra_wpts(session: Session, extra_wpts: list, commit_every: int = 5
         if cache_id is None:
             continue
 
+        parent_gc = suffix_to_gc_code.get(suffix)
         for wp in wps:
             session.add(Waypoint(
                 cache_id=cache_id,
+                parent_gc_code=parent_gc,
                 prefix=wp["prefix"],
                 wp_type=wp["wp_type"],
                 name=wp["name"],
