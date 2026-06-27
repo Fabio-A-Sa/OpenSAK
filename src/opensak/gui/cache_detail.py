@@ -279,6 +279,13 @@ class CacheDetailPanel(QWidget):
         log_layout.addWidget(self._log_browser)
         self._tabs.addTab(log_widget, tr("detail_tab_logs"))
 
+        wp_widget = QWidget()
+        wp_layout = QVBoxLayout(wp_widget)
+        wp_layout.setContentsMargins(0, 4, 0, 0)
+        self._wp_browser = QTextBrowser()
+        wp_layout.addWidget(self._wp_browser)
+        self._tabs.addTab(wp_widget, tr("detail_tab_waypoints"))
+
         layout.addWidget(self._tabs)
 
     def _meta_label(self, text: str) -> QLabel:
@@ -442,6 +449,8 @@ class CacheDetailPanel(QWidget):
         self._desc_view.setHtml("")
         self._hint_browser.setPlainText("")
         self._log_browser.setHtml("")
+        self._wp_browser.setPlainText("")
+        self._tabs.setTabText(3, tr("detail_tab_waypoints"))
         self._hint_plain = ""
         self._hint_cipher = ""
         self._hint_decoded = False
@@ -550,6 +559,9 @@ class CacheDetailPanel(QWidget):
         # Logs — viser alle (sorteret efter dato, nyeste først)
         self._render_logs(cache)
 
+        # Child waypoints
+        self._render_waypoints(cache)
+
     def _render_logs(self, cache: Cache) -> None:
         logs = sorted(
             cache.logs,
@@ -605,6 +617,35 @@ class CacheDetailPanel(QWidget):
             )
 
         self._log_browser.setHtml("".join(html))
+
+    def _render_waypoints(self, cache: Cache) -> None:
+        wps = cache.waypoints
+        count = len(wps)
+        tab_idx = 3
+        self._tabs.setTabText(
+            tab_idx,
+            tr("detail_tab_waypoints_count", count=count) if count else tr("detail_tab_waypoints"),
+        )
+        if not wps:
+            self._wp_browser.setPlainText(tr("detail_no_waypoints"))
+            return
+        html = []
+        for wp in sorted(wps, key=lambda w: w.prefix or ""):
+            if wp.latitude is not None and wp.longitude is not None:
+                coords = self._format_coords(wp.latitude, wp.longitude)
+            else:
+                coords = tr("detail_wp_no_coords")
+            name_part = f" — {wp.name}" if wp.name else ""
+            html.append(
+                f'<p><b>[{wp.prefix}]</b> <b>{wp.wp_type or "?"}</b>{name_part}'
+                f'<br><span style="color:gray">{coords}</span></p>'
+            )
+            if wp.description:
+                html.append(f'<p style="margin-top:2px">{wp.description}</p>')
+            if wp.comment:
+                html.append(f'<p style="color:#555;margin-top:2px"><i>{wp.comment}</i></p>')
+            html.append("<hr>")
+        self._wp_browser.setHtml("".join(html))
 
     def _cleanup_webengine(self) -> None:
         """Slet QWebEnginePage før Qt rydder defaultProfile op.
